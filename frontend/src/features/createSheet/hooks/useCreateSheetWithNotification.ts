@@ -33,7 +33,6 @@ export function useCreateSheetWithNotification(spaceId: number) {
         title: "악보 생성 시작",
         message: "악보가 생성 중입니다.",
       });
-      // console.log("🟡 생성 중…", data);
     },
     onComplete: (data) => {
       setCreating(false);
@@ -47,7 +46,6 @@ export function useCreateSheetWithNotification(spaceId: number) {
         title: "악보 생성 완료",
         message: "성공적으로 악보가 생성되었습니다.",
       });
-      // console.log("🟢 생성 완료!", data);
       queryClient.invalidateQueries({ queryKey: ["copySong", spaceId] });
       // unsubscribeRef.current?.(); //구독 끊지 않고 계속 알림 오게 주석 처리, 혹시 몰라 남겨둠
     },

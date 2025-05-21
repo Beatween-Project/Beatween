@@ -14,7 +14,6 @@ function App() {
 
     if (prevPath === "/room" && currentPath !== "/room") {
       if (stompClient?.connected) {
-        console.log("🛑 [App] /room에서 벗어남 → WebSocket disconnect");
         stompClient.deactivate();
       }
     }

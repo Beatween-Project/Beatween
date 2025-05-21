@@ -18,12 +18,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   spaceId: null,
 
   setStompClient: (client) => {
-    console.log("✅ [Zustand] stompClient 설정됨:", client);
     set({ stompClient: client });
   },
 
   setSpaceId: (spaceId) => {
-    console.log("✅ [Zustand] spaceId 설정됨:", spaceId);
     set({ spaceId });
   },
   updatePausedMeasure: undefined, // 초기엔 undefined로 설정
@@ -34,17 +32,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   disconnectWithCleanup: async () => {
     const { stompClient, spaceId } = get();
 
-    console.log(
-      "🚪 [Store] 연결 해제 시작 - spaceId:",
-      spaceId,
-      "connected:",
-      stompClient?.connected
-    );
-
     if (stompClient && stompClient.connected && spaceId) {
       try {
-        console.log("📤 [Store] disconnect 메시지 전송 중...");
-
         // disconnect 메시지 전송
         stompClient.publish({
           destination: "/app/disconnect",
@@ -56,10 +45,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         // 메시지 전송 완료를 위한 짧은 대기
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        console.log("🔌 [Store] WebSocket 연결 해제 중...");
         await stompClient.deactivate();
-
-        console.log("✅ [Store] WebSocket 정리 완료");
       } catch (error) {
         console.error("❌ [Store] WebSocket 해제 중 오류:", error);
       }

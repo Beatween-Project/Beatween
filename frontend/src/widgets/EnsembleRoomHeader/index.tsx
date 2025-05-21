@@ -1,13 +1,13 @@
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useUserStore } from "@/features/user/model/useUserStore";
 import { useGlobalStore } from "@/app/store/globalStore";
 import { useSocketStore } from "@/app/store/socketStore";
+import { useHeaderFooterStore } from "@/app/store/headerFooterStore";
 import { InstrumentDropdown } from "@/features/instrument/ui/InstrumentDropdown";
-import { useNavigate } from "react-router-dom";
+import { useScoreStore } from "@/features/score/model/useScoreStore";
 import { Icon } from "@/shared/ui/Icon";
 import { Button } from "@/shared/ui/Button";
-import { useHeaderFooterStore } from "@/app/store/headerFooterStore";
-import { useParams } from "react-router-dom";
-import { useEffect } from "react";
 
 export function EnsembleRoomHeader() {
   const { avatarUrl } = useUserStore();
@@ -20,7 +20,44 @@ export function EnsembleRoomHeader() {
   const isDrawing = useGlobalStore((state) => state.isDrawing);
   const setIsDrawing = useGlobalStore((state) => state.setIsDrawing);
 
+  // 변경: sheet는 로깅용으로만 사용, parts를 직접 가져옴
+  const sheets = useScoreStore((state) => state.selectedSheets);
+  const parts = useScoreStore((state) => state.parts);
+
   const currentSpaceId = String(roomId ?? "unknown");
+
+  useEffect(() => {
+    console.log("📥 [LOG] useScoreStore의 selectedSheets 상태 확인:", sheets);
+
+    // 디버깅: sheets 배열에서 part 정보 확인
+    if (sheets && sheets.length > 0) {
+      console.log("🔍 EnsembleRoomHeader - 첫 번째 sheet:", sheets[0]);
+      if (sheets[0].part) {
+        console.log(
+          "🔍 EnsembleRoomHeader - 첫 번째 sheet의 part:",
+          sheets[0].part
+        );
+      } else {
+        console.warn(
+          "⚠️ EnsembleRoomHeader - sheets[0]에 part 속성이 없습니다"
+        );
+      }
+    }
+  }, [sheets]);
+
+  useEffect(() => {
+    console.log("🎼 EnsembleRoomHeader - 현재 parts 상태:", parts);
+    // 추가 디버깅: store에서 직접 확인
+    console.log(
+      "🔍 EnsembleRoomHeader - store에서 직접 확인한 parts:",
+      useScoreStore.getState().parts
+    );
+  }, [parts]);
+
+  useEffect(() => {
+    console.log("📌 [LOG] 초기 roomId:", roomId);
+    console.log("📌 [LOG] 변환된 currentSpaceId:", currentSpaceId);
+  }, [roomId, currentSpaceId]);
 
   useEffect(() => {
     if (currentSpaceId && currentSpaceId !== "unknown") {
@@ -28,10 +65,23 @@ export function EnsembleRoomHeader() {
       console.log("🎯 [Header] spaceId를 store에 설정:", currentSpaceId);
     }
 
-    // 접속 시 기본 드로잉 비활성화 상태 설정 (콘솔로 확인)
     setIsDrawing(false);
     console.log("🖌️ 기본 드로잉 상태:", false);
   }, [currentSpaceId, setSpaceId, setIsDrawing]);
+
+  useEffect(() => {
+    const handlePaletteOpen = () => {
+      setIsDrawing(true);
+      console.log("🎨 색상 선택기 열림 → 드로잉 활성화 true");
+    };
+    window.addEventListener("open-color-picker", handlePaletteOpen);
+    return () =>
+      window.removeEventListener("open-color-picker", handlePaletteOpen);
+  }, [setIsDrawing]);
+
+  useEffect(() => {
+    console.log("📦 [LOG] 현재 spaceId 상태:", spaceId);
+  }, [spaceId]);
 
   const handleExit = async () => {
     console.log("🚪 [EXIT] 합주방 나가기 시도");
@@ -47,17 +97,9 @@ export function EnsembleRoomHeader() {
     console.log("🎨 드로잉 상태 토글:", next);
   };
 
-  useEffect(() => {
-    const handlePaletteOpen = () => {
-      setIsDrawing(true);
-      console.log("🎨 색상 선택기 열림 → 드로잉 활성화 true");
-    };
-    window.addEventListener("open-color-picker", handlePaletteOpen);
-    return () =>
-      window.removeEventListener("open-color-picker", handlePaletteOpen);
-  }, [setIsDrawing]);
-
   if (isPlaying && !showHeaderFooter) return null;
+
+  console.log("🔍 EnsembleRoomHeader 렌더링 시점의 parts:", parts);
 
   return (
     <header
@@ -80,10 +122,14 @@ export function EnsembleRoomHeader() {
             <Icon icon="chevron_right" tone="white" size={18} />
           </div>
           <div className="bg-white rounded px-1 flex items-center h-6">
-            <InstrumentDropdown className="text-black font-medium text-xs border-none outline-none h-full leading-none py-0 my-0" />
+            <InstrumentDropdown
+              parts={parts}
+              className="text-black font-medium text-xs border-none outline-none h-full leading-none py-0 my-0"
+            />
           </div>
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         {isDrawing ? (
           <>

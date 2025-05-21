@@ -21,6 +21,9 @@ interface ActionModalProps extends DefaultModalProps {
   icon?: string;
   fill?: boolean;
 }
+export const closeModal = () => {
+  useModalStore.getState().closeModal();
+};
 
 export const openAlert = (props: AlertModalProps) => {
   useModalStore.getState().openModal("alert", props);

@@ -111,7 +111,6 @@ export function useVerovioLoader(
             const parsedBpm = parseInt(bpmMatch[1], 10);
             if (!isNaN(parsedBpm)) {
               store.setBpm(parsedBpm);
-              console.log("📥 저장된 BPM:", useScoreStore.getState().bpm);
             }
           }
         } catch (err) {

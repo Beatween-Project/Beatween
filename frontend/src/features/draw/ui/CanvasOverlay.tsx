@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Client } from "@stomp/stompjs";
+import { Stage, Layer, Line } from "react-konva";
 import ColorPicker from "@/features/draw/ui/ColorPicker";
 
 interface CanvasOverlayProps {
@@ -7,149 +7,181 @@ interface CanvasOverlayProps {
   spaceId: string;
   userId: string;
   selectedColor: string;
-  isPaletteVisible: boolean;
   onColorChange: (color: string) => void;
   isSocketConnected: boolean;
-  stompClient: Client | null;
+  stompClient: any;
+  isDrawing: boolean;
 }
 
-export default function CanvasOverlay({
-  sheetId,
-  spaceId,
-  // userId, //ts 오류 때문에 잠시 주석처리해둡니다, 충돌이나 오류나면 주석 풀어주세요
-  selectedColor,
-  isPaletteVisible,
-  onColorChange,
-  isSocketConnected,
-  stompClient,
-}: CanvasOverlayProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [drawing, setDrawing] = useState(false);
-  const [showPalette, setShowPalette] = useState(isPaletteVisible);
-  const clientIdRef = useRef<string>(crypto.randomUUID());
+type KonvaCompositeOperation = "source-over" | "destination-out";
 
-  // show-color-picker 이벤트 수신
+type LineData = {
+  points: number[];
+  color: string;
+  mode: KonvaCompositeOperation;
+};
+
+export default function CanvasOverlay({
+  selectedColor,
+  onColorChange,
+  isDrawing,
+}: CanvasOverlayProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [showPalette, setShowPalette] = useState(false);
+  const [palettePos] = useState({ x: 16, y: 16 });
+  const [lines, setLines] = useState<LineData[]>([]);
+  const [isEraser, setIsEraser] = useState(false);
+  const drawingLine = useRef<LineData | null>(null);
+  const [canvasHeight, setCanvasHeight] = useState(window.innerHeight);
+
   useEffect(() => {
-    const handler = () => {
-      console.log("🎨 색상 선택기 열림 → 드로잉 활성화 true");
-      setShowPalette(true);
+    const handleShowPalette = () => setShowPalette(true);
+    window.addEventListener("show-color-picker", handleShowPalette);
+    return () => {
+      window.removeEventListener("show-color-picker", handleShowPalette);
     };
-    window.addEventListener("show-color-picker", handler);
-    return () => window.removeEventListener("show-color-picker", handler);
   }, []);
 
-  const getRelativeCoords = (e: MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
+  useEffect(() => {
+    const updateHeight = () => {
+      const content =
+        document.getElementById("score-container") || document.body;
+      setCanvasHeight(content.scrollHeight);
+    };
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    window.addEventListener("scroll", updateHeight);
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      window.removeEventListener("scroll", updateHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDrawing) {
+      setShowPalette(false); // 드로잉 종료 시 팔레트 숨김
+    }
+  }, [isDrawing]);
+
+  const getTouchPos = (e: any) => {
+    const touch = e.evt.touches?.[0];
+    if (!touch || !containerRef.current) return null;
+    const rect = containerRef.current.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
+      x: touch.clientX - rect.left,
+      y: touch.clientY + window.scrollY - rect.top,
     };
   };
 
-  const drawDot = (x: number, y: number, color = "black") => {
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    const canvas = canvasRef.current!;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x * canvas.width, y * canvas.height, 2, 0, Math.PI * 2);
-    ctx.fill();
+  const handleStart = (e: any) => {
+    if (!isDrawing) return;
+
+    const stage = e.target.getStage();
+    const pos = getTouchPos(e) || stage.getPointerPosition();
+    if (!pos) return;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
+    const newLine: LineData = {
+      points: [pos.x, pos.y],
+      color: isEraser ? "#ffffff" : selectedColor,
+      mode: isEraser ? "destination-out" : "source-over",
+    };
+    drawingLine.current = newLine;
+    setLines((prev) => [...prev, newLine]);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!drawing || !showPalette) return;
-    const { x, y } = getRelativeCoords(e);
-    drawDot(x, y, selectedColor);
+  const handleMove = (e: any) => {
+    if (!isDrawing || !drawingLine.current) return;
 
-    stompClient?.publish({
-      destination: "/app/updateDraw",
-      body: JSON.stringify({
-        spaceId,
-        copySheetId: sheetId,
-        relativeX: x,
-        relativeY: y,
-        color: selectedColor,
-        sender: clientIdRef.current,
-        erase: false,
-      }),
-    });
+    const stage = e.target.getStage();
+    const point = getTouchPos(e) || stage.getPointerPosition();
+    if (!point) return;
+
+    drawingLine.current.points.push(point.x, point.y);
+    setLines((prev) => [...prev.slice(0, -1), { ...drawingLine.current! }]);
   };
 
-  useEffect(() => {
-    if (!stompClient || !isSocketConnected) return;
+  const handleEnd = () => {
+    if (!isDrawing) return;
 
-    const subscription = stompClient.subscribe(
-      `/topic/draw/${sheetId}`,
-      (msg) => {
-        const data = JSON.parse(msg.body);
-        if (data.sender === clientIdRef.current) return;
-        drawDot(data.relativeX, data.relativeY, data.color || "red");
-      }
-    );
+    document.body.style.overflow = "auto";
+    document.body.style.touchAction = "auto";
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [stompClient, isSocketConnected, sheetId]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const onMouseDown = () => {
-      if (showPalette) setDrawing(true);
-    };
-    const onMouseUp = () => setDrawing(false);
-
-    canvas.addEventListener("mousedown", onMouseDown);
-    canvas.addEventListener("mouseup", onMouseUp);
-    canvas.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      canvas.removeEventListener("mousedown", onMouseDown);
-      canvas.removeEventListener("mouseup", onMouseUp);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [drawing, selectedColor, showPalette]);
-
-  useEffect(() => {
-    console.log(
-      "🖼️ CanvasOverlay mounted, isPaletteVisible:",
-      isPaletteVisible
-    );
-  }, [isPaletteVisible]);
+    if (drawingLine.current?.points.length) {
+      setLines((prev) => [...prev, { ...drawingLine.current! }]);
+    }
+    drawingLine.current = null;
+  };
 
   return (
     <div
+      ref={containerRef}
+      className="overflow-visible touch-none"
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
-        height: "100%",
+        height: canvasHeight,
+        pointerEvents: isDrawing ? "auto" : "none",
       }}
     >
       {showPalette && (
-        <div style={{ position: "absolute", top: 16, left: 16, zIndex: 20 }}>
-          <ColorPicker onChange={onColorChange} />
+        <div
+          className="fixed z-[100] bg-white rounded-2xl shadow-xl border p-4"
+          style={{ top: palettePos.y, left: palettePos.x }}
+        >
+          <div className="cursor-move font-bold mb-2 text-sm">🎨 팔레트</div>
+          <div className="flex items-center gap-3">
+            <ColorPicker
+              color={selectedColor}
+              onChange={onColorChange}
+              isVisible={isDrawing}
+            />
+            <button
+              onClick={() => setIsEraser((prev) => !prev)}
+              className={`w-10 h-10 text-white font-bold text-sm rounded-full transition-all border-2 ${
+                isEraser ? "bg-red-600 border-red-800" : "bg-gray-300"
+              }`}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
-      <canvas
-        ref={canvasRef}
-        width={1000}
-        height={1200}
+
+      <Stage
+        width={window.innerWidth}
+        height={canvasHeight}
+        onMouseDown={handleStart}
+        onMousemove={handleMove}
+        onMouseup={handleEnd}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
         style={{
-          width: "100%",
-          height: "100%",
           position: "absolute",
           top: 0,
           left: 0,
           zIndex: 10,
-          pointerEvents: showPalette ? "auto" : "none",
         }}
-      />
+      >
+        <Layer>
+          {lines.map((line, i) => (
+            <Line
+              key={i}
+              points={line.points}
+              stroke={line.color}
+              strokeWidth={isEraser ? 10 : 4}
+              tension={0.5}
+              lineCap="round"
+              globalCompositeOperation={line.mode}
+            />
+          ))}
+        </Layer>
+      </Stage>
     </div>
   );
 }
