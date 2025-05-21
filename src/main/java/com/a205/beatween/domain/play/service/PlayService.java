@@ -21,4 +21,7 @@ public interface PlayService {
     Result<List<CategoryWithSongsResponse>> getAllSheets(Integer spaceId);
 
     Result<Void> selectSong(Integer spaceId, Integer copySongId, Integer userId);
+
+    Result<SelectedSongResponse> getSelectedSong(Integer spaceId);
+
 }

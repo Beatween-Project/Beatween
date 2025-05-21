@@ -54,5 +54,11 @@ public class PlayController {
                 .body(ResponseDto.from(result));
     }
 
+    @GetMapping("/spaces/{spaceId}/selected-song")
+    public ResponseEntity<ResponseDto<SelectedSongResponse>> getSelectedSong(@PathVariable Integer spaceId) {
+        Result<SelectedSongResponse> result = playService.getSelectedSong(spaceId);
+        int status = result.isSuccess() ? 200 : result.getError().getCode();
+        return ResponseEntity.status(status).body(ResponseDto.from(result));
+    }
 
 }

@@ -12,5 +12,6 @@ import java.util.List;
 public class SongWithSheetsResponse {
     private Integer copySongId;
     private String title;
+    private String thumbnailUrl;
     private List<SheetInfoResponse> sheets;
 }

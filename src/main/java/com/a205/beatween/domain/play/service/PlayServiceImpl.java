@@ -114,6 +114,8 @@ public class PlayServiceImpl implements PlayService {
             redisTemplate.delete(sessionCountKey);
             redisTemplate.delete(memberKey);
             redisTemplate.delete(managerKey);
+            String selectedSongKey = "ws:space:" + spaceId + ":selectedSong";
+            redisTemplate.delete(selectedSongKey);
             log.info("마지막 사용자 → 캐시 정리 완료: {}", spaceId);
         }
     }
@@ -141,6 +143,7 @@ public class PlayServiceImpl implements PlayService {
                     songResponses.add(SongWithSheetsResponse.builder()
                             .copySongId(copySong.getCopySongId())
                             .title(copySong.getTitle())
+                            .thumbnailUrl(copySong.getThumbnailUrl())
                             .sheets(sheetInfos)
                             .build());
                 }
@@ -181,6 +184,17 @@ public class PlayServiceImpl implements PlayService {
         return Result.success(null);
     }
 
+    @Override
+    public Result<SelectedSongResponse> getSelectedSong(Integer spaceId) {
+        String key = "ws:space:" + spaceId + ":selectedSong";
+        String value = (String) redisTemplate.opsForValue().get(key);
+
+        if (value == null) {
+            return Result.error(404, "아직 곡이 선택되지 않았습니다.");
+        }
+
+        return Result.success(new SelectedSongResponse(Integer.parseInt(value)));
+    }
 
 
 }
