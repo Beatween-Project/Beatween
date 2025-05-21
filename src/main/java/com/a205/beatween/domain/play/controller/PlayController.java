@@ -24,15 +24,35 @@ public class PlayController {
 
     @GetMapping("/sheets/all/{spaceId}")
     public ResponseEntity<ResponseDto<List<CategoryWithSongsResponse>>> getAllSheets(@PathVariable("spaceId") Integer spaceId) {
-        List<CategoryWithSongsResponse> data = playService.getAllSheets(spaceId);
-        Result<List<CategoryWithSongsResponse>> result = Result.success(data);
-        return ResponseEntity.ok(ResponseDto.from(result));
+        Result<List<CategoryWithSongsResponse>> result = playService.getAllSheets(spaceId);
 
+        if (!result.isSuccess()) {
+            return ResponseEntity
+                    .status(result.getError().getCode())
+                    .body(ResponseDto.from(result));
+        }
+
+        return ResponseEntity.ok(ResponseDto.from(result));
     }
 
-    @PostMapping("/sheets/select")
-    public ResponseEntity<ResponseDto<SheetSelectResponse>> selectSheet(@RequestBody SheetSelectRequest request) {
-        Result<SheetSelectResponse> result = playService.selectSheet(request);
-        return ResponseEntity.ok(ResponseDto.from(result));
+
+    @PostMapping("/spaces/{spaceId}/selected-song")
+    public ResponseEntity<ResponseDto<Void>> selectSong(
+            @PathVariable Integer spaceId,
+            @RequestBody SelectSongRequest request
+    ) {
+        Result<Void> result = playService.selectSong(
+                spaceId,
+                request.getCopySongId(),
+                request.getUserId()
+        );
+
+        int status = result.isSuccess() ? 200 : result.getError().getCode();
+
+        return ResponseEntity
+                .status(status)
+                .body(ResponseDto.from(result));
     }
+
+
 }

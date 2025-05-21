@@ -24,7 +24,6 @@ public class PlayServiceImpl implements PlayService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
     private final DrawingService drawingService;
-    private final CopySheetRepository copySheetRepository;
     private final CategoryRepository categoryRepository;
     private final CopySongRepository copySongRepository;
 
@@ -91,12 +90,10 @@ public class PlayServiceImpl implements PlayService {
 
         String currentLeader = (String) redisTemplate.opsForValue().get(managerKey);
         if (Objects.equals(currentLeader, sessionId)) {
-            String newLeader = redisTemplate.opsForZSet()
-                    .range(memberKey, 0, 0)
-                    .stream()
-                    .map(String.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            Set<Object> members = redisTemplate.opsForZSet().range(memberKey, 0, 0);
+            String newLeader = (members != null && !members.isEmpty())
+                    ? members.stream().map(String.class::cast).findFirst().orElse(null)
+                    : null;
 
             if (newLeader != null) {
                 redisTemplate.opsForValue().set(managerKey, newLeader);
@@ -104,6 +101,7 @@ public class PlayServiceImpl implements PlayService {
                 broadcastManagerChange(spaceId, newLeader);
             }
         }
+
 
         if (count != null && count <= 0) {
             Set<String> keys = redisTemplate.keys("drawings:" + spaceId + ":*");
@@ -121,7 +119,7 @@ public class PlayServiceImpl implements PlayService {
     }
 
     @Override
-    public List<CategoryWithSongsResponse> getAllSheets(Integer spaceId) {
+    public Result<List<CategoryWithSongsResponse>> getAllSheets(Integer spaceId) {
         List<Category> categories = categoryRepository.findBySpace_SpaceId(spaceId);
         List<CategoryWithSongsResponse> result = new ArrayList<>();
 
@@ -139,57 +137,51 @@ public class PlayServiceImpl implements PlayService {
                                 .build()
                 ).toList();
 
-                songResponses.add(SongWithSheetsResponse.builder()
-                        .copySongId(copySong.getCopySongId())
-                        .title(copySong.getTitle())
-                        .sheets(sheetInfos)
-                        .build());
+                if (!sheetInfos.isEmpty()) {
+                    songResponses.add(SongWithSheetsResponse.builder()
+                            .copySongId(copySong.getCopySongId())
+                            .title(copySong.getTitle())
+                            .sheets(sheetInfos)
+                            .build());
+                }
             }
 
-            result.add(CategoryWithSongsResponse.builder()
-                    .categoryId(category.getCategoryId())
-                    .categoryName(category.getName())
-                    .songs(songResponses)
-                    .build());
+            if (!songResponses.isEmpty()) {
+                result.add(CategoryWithSongsResponse.builder()
+                        .categoryId(category.getCategoryId())
+                        .categoryName(category.getName())
+                        .songs(songResponses)
+                        .build());
+            }
         }
 
-        return result;
+        if (result.isEmpty()) {
+            return Result.error(404, "해당 스페이스에 등록된 악보 정보가 없습니다.");
+        }
+
+        return Result.success(result);
     }
 
     @Override
-    public Result<SheetSelectResponse> selectSheet(SheetSelectRequest req) {
-        int spaceId = req.getSpaceId();
-        Integer copySongId = req.getCopySongId() == 0 ? null : req.getCopySongId();
-        String part = req.getInstrumentPart();
-        String songKey = "ws:space:" + spaceId + ":selectedSong";
+    public Result<Void> selectSong(Integer spaceId, Integer copySongId, Integer userId) {
+        String userKey = "ws:space:" + spaceId + ":user:" + userId;
+        String sessionId = (String) redisTemplate.opsForValue().get(userKey);
 
-        if (copySongId != null) {
-            redisTemplate.opsForValue().set(songKey, String.valueOf(copySongId));
-        } else {
-            String stored = (String) redisTemplate.opsForValue().get(songKey);
-            if (stored == null) {
-                return Result.error(404, "아직 곡이 선택되지 않았습니다.");
-            }
-            copySongId = Integer.parseInt(stored);
+        String managerKey = "ws:space:" + spaceId + ":manager";
+        String managerSessionId = (String) redisTemplate.opsForValue().get(managerKey);
+
+        if (sessionId == null || managerSessionId == null || !sessionId.equals(managerSessionId)) {
+            return Result.error(403, "매니저만 곡을 선택할 수 있습니다.");
         }
 
-        Optional<CopySheet> optionalSheet =
-                copySheetRepository.findByCopySong_CopySongIdAndPart(copySongId, part);
+        String selectedKey = "ws:space:" + spaceId + ":selectedSong";
+        redisTemplate.opsForValue().set(selectedKey, String.valueOf(copySongId));
 
-        if (optionalSheet.isEmpty()) {
-            return Result.error(404, "선택한 세션에 해당하는 악보가 존재하지 않습니다.");
-        }
-
-        CopySheet sheet = optionalSheet.get();
-
-        SheetSelectResponse response = new SheetSelectResponse(
-                sheet.getCopySheetId(),
-                sheet.getPart(),
-                sheet.getSheetUrl()
-        );
-
-        return Result.success(response);
+        log.info("곡 선택 저장 - spaceId: {}, copySongId: {}, managerSession: {}", spaceId, copySongId, managerSessionId);
+        return Result.success(null);
     }
+
+
 
 }
 

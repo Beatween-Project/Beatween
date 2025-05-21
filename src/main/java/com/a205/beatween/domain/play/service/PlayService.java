@@ -18,7 +18,7 @@ public interface PlayService {
 
     void handleManualDisconnect(String spaceId, String sessionId, String userId);
 
-    List<CategoryWithSongsResponse> getAllSheets(Integer spaceId);
+    Result<List<CategoryWithSongsResponse>> getAllSheets(Integer spaceId);
 
-    Result<SheetSelectResponse> selectSheet(SheetSelectRequest request);
+    Result<Void> selectSong(Integer spaceId, Integer copySongId, Integer userId);
 }
