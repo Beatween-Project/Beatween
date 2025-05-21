@@ -16,7 +16,7 @@ interface CanvasOverlayProps {
 export default function CanvasOverlay({
   sheetId,
   spaceId,
-  userId,
+  // userId, //ts 오류 때문에 잠시 주석처리해둡니다, 충돌이나 오류나면 주석 풀어주세요
   selectedColor,
   isPaletteVisible,
   onColorChange,

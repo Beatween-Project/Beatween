@@ -19,7 +19,7 @@ export const UpdateSongForm = forwardRef<
 
   useImperativeHandle(ref, () => ({
     getFormData() {
-      return songFormRef.current?.getFormData() ?? new FormData();
+      return (songFormRef.current?.getFormData() ?? new FormData()) as FormData;
     },
   }));
 
