@@ -1,4 +1,3 @@
-import { Button } from "@/shared/ui/Button";
 import { ImageBox } from "./ui/ImageBox";
 import { PlaywithButton } from "./ui/PlaywithButton";
 import { ImageCircle } from "@/shared/ui/ImageCircle";
@@ -21,6 +20,7 @@ import { useSpaceVersionStore } from "@/entities/band/store/spaceVersionStore";
 import { formatDate } from "@/shared/lib/formatDate";
 import { DeleteBandButton } from "@/features/deleteBand/ui/DeleteBandButton";
 import { ExitBandButton } from "@/features/deleteBand/ui/ExitBandButton";
+import { InviteButton } from "@/features/invite/ui/InviteButton";
 import { useGlobalStore } from "@/app/store/globalStore";
 import axiosInstance from "@/shared/api/axiosInstance";
 
@@ -200,29 +200,7 @@ export const SpaceContentLayout = ({
           <div className="flex flex-wrap gap-2">
             {type === "team" && (
               <>
-                <Button
-                  icon="link"
-                  color="green"
-                  onClick={() => {
-                    navigator.clipboard
-                      .writeText("abc")
-                      .then(() => {
-                        toast.success({
-                          title: "복사 성공",
-                          message: "초대 링크가 클립보드로 복사되었습니다.",
-                        });
-                      })
-                      .catch(() => {
-                        toast.error({
-                          title: "복사 실패",
-                          message:
-                            "초대 링크를 받아오는 데 실패했습니다. 다시 시도해주세요.",
-                        });
-                      });
-                  }}
-                >
-                  초대 링크 복사
-                </Button>
+                <InviteButton spaceId={teamId} />
                 {isOwner ? (
                   <DeleteBandButton spaceId={teamId} />
                 ) : (

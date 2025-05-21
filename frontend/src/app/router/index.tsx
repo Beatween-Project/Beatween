@@ -11,6 +11,7 @@ import { SpaceLayout } from "@/widgets/SpaceLayout";
 import { LayoutDefault } from "../layouts/LayoutDefault";
 import { TestPlaywithPage, TestSheetPage } from "@/pages/Test";
 import EnsembleRoom from "@/pages/EnsembleRoom/EnsembleRoom";
+import { RedirectSharePage } from "@/features/invite/ui/RedirectSharePage";
 import { LocalSignUpPage } from "@/features/auth/local/ui/LocalSignUpPage";
 import { LocalSignInPage } from "@/features/auth/local/ui/LocalSignInPage";
 import { ErrorPage } from "@/pages/Error";
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
         <TestPlaywithPage />
       </LayoutDefault>
     ),
+  },
+  {
+    path: "/share/:slug/:shareKey",
+    element: <RedirectSharePage />,
   },
   {
     path: "/signup",
