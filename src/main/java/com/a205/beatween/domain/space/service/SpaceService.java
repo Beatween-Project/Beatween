@@ -112,12 +112,6 @@ public class SpaceService {
 
 
     public Result<InvitationDto> resolveInvitationLink(Integer userId, String teamSlug, String shareKey) {
-
-        // 유저Id 확인
-        //TODO : 로그인 구현 후 주석 해제
-//      Integer userId = getUserId(principal);
-//        Integer userId = 2; // 임시 유저 id
-
         // shareKey로 Space 조회. 만약 이 shareKey로 space를 찾을 수 없다면 잘못된 초대 링크임
         Space space = spaceRepository.findByShareKey(shareKey).orElse(null);
         if(space == null) {
@@ -134,6 +128,10 @@ public class SpaceService {
         // 현재 유저가 이 팀에 속해있는지 확인
         Integer spaceId = space.getSpaceId();
         boolean isMember = userSpaceRepository.existsByUser_UserIdAndSpace_SpaceId(userId, spaceId);
+        InvitationDto invitationDto = InvitationDto.builder()
+                .spaceId(spaceId)
+                .isMember(isMember)
+                .build();
 
         // 만약 유저가 팀에 속해있지 않다면, 해당 팀에 가입
         if(!isMember) {
@@ -144,16 +142,7 @@ public class SpaceService {
                     .build();
             userSpaceRepository.save(newUserSpace);
         }
-
-        // 링크를 클릭한 모든 유저에게 팀 스페이스의 모든 정보 반환
-        SpaceDetailDto spaceDetailDto = null;
-        SpaceDetailResponseDto spaceDetailResponseDto = getSpaceDetail(spaceId, userId);
-        List<CopySongListByCategoryDto> songList = songService.getAllSongs(spaceId);
-        spaceDetailDto = SpaceDetailDto.builder()
-                .spaceDetailResponseDto(spaceDetailResponseDto)
-                .songList(songList)
-                .build();
-        return Result.success(InvitationDto.ofInviteMember(spaceDetailDto));
+        return Result.success(invitationDto);
     }
 
 
