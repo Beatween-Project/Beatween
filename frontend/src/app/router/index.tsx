@@ -13,6 +13,7 @@ import { TestPlaywithPage, TestSheetPage } from "@/pages/Test";
 import EnsembleRoom from "@/pages/EnsembleRoom/EnsembleRoom";
 import { LocalSignUpPage } from "@/features/auth/local/ui/LocalSignUpPage";
 import { LocalSignInPage } from "@/features/auth/local/ui/LocalSignInPage";
+import { ErrorPage } from "@/pages/Error";
 
 const router = createBrowserRouter([
   {
@@ -84,6 +85,10 @@ const router = createBrowserRouter([
         <LocalSignInPage />
       </LayoutDefault>
     ),
+  },
+  {
+    path: "*",
+    element: <ErrorPage />,
   },
   //   {
   //     path: '/score/:scoreId',

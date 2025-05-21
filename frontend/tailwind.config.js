@@ -40,5 +40,16 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".text-stroke-100": {
+          "-webkit-text-stroke": "1px #FBF9F8",
+        },
+        ".text-stroke-1000": {
+          "-webkit-text-stroke": "1px #020923",
+        },
+      });
+    },
+  ],
 };
