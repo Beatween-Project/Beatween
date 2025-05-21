@@ -151,8 +151,11 @@ export const SpaceContentLayout = ({
                 {formatDate(bandData.createAt)}
               </div>
             )}
+
             {bandData?.spaceName && (
-              <div className="text-2xl font-bold">{bandData.spaceName}</div>
+              <div className="text-2xl font-bold">
+                {type === "personal" ? "MY MUSIC" : bandData.spaceName}
+              </div>
             )}
           </div>
           {bandData?.description && <div>{bandData.description}</div>}
