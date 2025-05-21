@@ -62,9 +62,11 @@ export function usePlaySync(spaceId: string) {
           const { playStatus, startTimestamp, bpm, currentMeasure } = message;
 
           if (playStatus === "PLAYING") {
-            setScorePlaying(true);
-            setGlobalPlaying(true);
-            setBpm(Number(bpm));
+            requestAnimationFrame(() => {
+              setScorePlaying(true);
+              setGlobalPlaying(true);
+              setBpm(Number(bpm));
+            });
 
             const beatDuration = 60000 / bpm;
             const measureDuration = beatDuration * 4;
@@ -104,10 +106,12 @@ export function usePlaySync(spaceId: string) {
 
             animationFrameIdRef.current = requestAnimationFrame(tick);
           } else {
-            setScorePlaying(false);
-            setGlobalPlaying(false);
-            isPausedRef.current = true;
+            requestAnimationFrame(() => {
+              setScorePlaying(false);
+              setGlobalPlaying(false);
+            });
 
+            isPausedRef.current = true;
             cancelAnimationFrame(animationFrameIdRef.current);
 
             if (currentMeasure !== undefined) {

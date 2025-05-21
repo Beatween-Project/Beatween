@@ -1,13 +1,17 @@
 import { useGlobalStore } from "@/app/store/globalStore";
-import { UpdateProfileForm } from "@/features/updateProfile/ui/UpdateProfileForm";
+import { UpdateProfileForm, UpdateProfileRef } from "@/features/updateProfile/ui/UpdateProfileForm";
+import { useUpdateProfile } from "@/features/updateProfile/hooks/useUpdateProfile";
 import { openConfirm, openModal } from "@/shared/lib/modal";
 import { toast } from "@/shared/lib/toast";
 import { ButtonBox } from "@/shared/ui/Button";
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 
 export const UserSettingModal = () => {
   const navigate = useNavigate();
   const { logout } = useGlobalStore();
+  const updateProfileFormRef = useRef<UpdateProfileRef>(null);
+  const updateProfileMutation = useUpdateProfile();
 
   return (
     <div className="flex flex-col gap-3 px-2 pb-2 pt-3">
@@ -17,13 +21,16 @@ export const UserSettingModal = () => {
           openModal({
             title: "프로필 수정하기",
             info: "나의 개성을 마음껏 드러내 보세요",
-            children: <UpdateProfileForm />,
+            children: <UpdateProfileForm ref={updateProfileFormRef} />,
             okText: "수정하기",
-            onConfirm: () =>
-              toast.warning({
-                title: "API 없음",
-                message: "아직 API가 연결되지 않았습니다. 연결해주세요.",
-              }),
+            onConfirm: () => {
+              const formData = updateProfileFormRef.current?.getFormData();
+              if (!formData) {
+                toast.error({ title: "폼 데이터 없음" });
+                return;
+              }
+              updateProfileMutation.mutate(formData);
+            },
           })
         }
       >
@@ -32,6 +39,7 @@ export const UserSettingModal = () => {
           email@email.com
         </div>
       </ButtonBox>
+
       <ButtonBox
         className="w-full text-left"
         onClick={() => {
@@ -41,6 +49,7 @@ export const UserSettingModal = () => {
       >
         로그아웃
       </ButtonBox>
+
       <div
         onClick={() =>
           openConfirm({

@@ -9,6 +9,8 @@ type SocketState = {
   setSpaceId: (spaceId: string | null) => void;
   disconnectWithCleanup: () => Promise<void>;
   updatePausedMeasure?: (measure: number) => void; // ✅ 이 줄 추가
+  isConnected: boolean;
+  setIsConnected: (value: boolean) => void;
 };
 
 export const useSocketStore = create<SocketState>((set, get) => ({
@@ -25,6 +27,9 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     set({ spaceId });
   },
   updatePausedMeasure: undefined, // 초기엔 undefined로 설정
+
+  isConnected: false,
+  setIsConnected: (value) => set({ isConnected: value }),
 
   disconnectWithCleanup: async () => {
     const { stompClient, spaceId } = get();

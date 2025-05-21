@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useScoreStore } from "@/features/score/model/useScoreStore";
 import { useMeasureHighlight } from "@/features/score/hooks/useMeasureHighlight";
 import { useVerovioLoader } from "@/features/score/hooks/useVerovioLoader";
@@ -6,6 +6,8 @@ import { PlayControl } from "@/widgets/PlayControl";
 import { usePlaySync } from "@/shared/hooks/usePlaySync";
 import { useGlobalStore } from "@/app/store/globalStore";
 import { useHeaderFooterStore } from "@/app/store/headerFooterStore";
+import { useSocketStore } from "@/app/store/socketStore";
+import CanvasOverlay from "@/features/draw/ui/CanvasOverlay"; // 드로잉 컴포넌트 경로 맞춰주세요
 
 interface ScoreSheetViewerProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -15,17 +17,19 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
   containerRef,
 }) => {
   const { isFullscreen, currentMeasure, systems, isPlaying } = useScoreStore();
-  const clientId = useGlobalStore((state) => state.clientId);
   const { setShowHeaderFooter } = useHeaderFooterStore();
+  const clientId = useGlobalStore((s) => s.clientId);
+  const isDrawing = useGlobalStore((s) => s.isDrawing);
+  const stompClient = useSocketStore((s) => s.stompClient);
+  const isSocketConnected = useSocketStore((s) => s.isConnected);
 
-  console.log("🎯 ScoreSheetViewer mounted with clientId:", clientId);
+  const [selectedColor, setSelectedColor] = useState("#000000");
 
   usePlaySync("1");
-
-  const lastSystemIndexRef = useRef<number | null>(null);
-
   useVerovioLoader(containerRef);
   useMeasureHighlight(containerRef);
+
+  const lastSystemIndexRef = useRef<number | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -35,7 +39,6 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
     }
   }, []);
 
-  // ✅ 재생 상태 변화만 감지하여 즉시 스크롤
   useEffect(() => {
     if (!containerRef.current || !isPlaying) return;
 
@@ -47,18 +50,9 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
 
     const currentSystem = systems[currentSystemIndex].el as SVGGraphicsElement;
 
-    // 재생 시작 시 즉시 스크롤
-    currentSystem.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest",
-    });
-
+    currentSystem.scrollIntoView({ behavior: "smooth", block: "start" });
     lastSystemIndexRef.current = currentSystemIndex;
-    console.log(
-      `🎯 재생 시작 스크롤: 시스템 ${currentSystemIndex}, 마디 ${currentMeasure}`
-    );
-  }, [isPlaying]); // isPlaying만 의존성으로 설정
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -66,7 +60,6 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
     const container = containerRef.current;
     const systemElements = container.querySelectorAll("g.system");
 
-    // dimmed 효과 설정
     if (isPlaying) {
       systemElements.forEach((el) => el.classList.add("dimmed"));
     } else {
@@ -82,34 +75,23 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
 
     if (isPlaying) currentSystem.classList.remove("dimmed");
 
-    // ✅ 재생 중일 때 마디 변경으로 인한 스크롤
     if (
       isPlaying &&
       lastSystemIndexRef.current !== currentSystemIndex &&
       lastSystemIndexRef.current !== null
     ) {
-      currentSystem.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-        inline: "nearest",
-      });
+      currentSystem.scrollIntoView({ behavior: "smooth", block: "start" });
       lastSystemIndexRef.current = currentSystemIndex;
-      console.log(
-        `🎯 마디 변경 스크롤: 시스템 ${currentSystemIndex}, 마디 ${currentMeasure}`
-      );
     }
 
-    // ✅ 재생 정지 시 lastSystemIndexRef 초기화
     if (!isPlaying) {
       lastSystemIndexRef.current = null;
     }
   }, [currentMeasure, systems, isPlaying]);
 
-  // 터치 이벤트 핸들러
   const handleTouch = () => {
-    if (!isPlaying) return; // 재생 중이 아닐 때는 무시
-
-    setShowHeaderFooter((prev) => !prev); // 토글
+    if (!isPlaying) return;
+    setShowHeaderFooter((prev) => !prev);
   };
 
   return (
@@ -124,9 +106,21 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
         className="w-full h-full overflow-y-auto scroll-smooth"
       >
         <div className="relative">
-          {/* ✅ Verovio가 삽입될 영역 */}
-          <div className="h-[20px]" /> ← 여백
+          <div className="h-[20px]" />
           <div id="verovio-container" />
+
+          {isDrawing && (
+            <CanvasOverlay
+              sheetId={1}
+              spaceId="1"
+              userId={clientId.toString()}
+              selectedColor={selectedColor}
+              isPaletteVisible={isDrawing}
+              onColorChange={setSelectedColor}
+              isSocketConnected={isSocketConnected}
+              stompClient={stompClient}
+            />
+          )}
         </div>
       </div>
 

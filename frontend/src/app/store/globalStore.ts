@@ -13,6 +13,8 @@ type GlobalState = {
   setClientId: (id: number) => void;
   isManager: boolean;
   setIsManager: (isManager: boolean) => void;
+  isDrawing: boolean;
+  setIsDrawing: (value: boolean) => void;
 };
 
 export const useGlobalStore = create<GlobalState>((set) => ({
@@ -36,4 +38,6 @@ export const useGlobalStore = create<GlobalState>((set) => ({
   setClientId: (id) => set({ clientId: id }),
   isManager: false,
   setIsManager: (isManager) => set({ isManager }),
+  isDrawing: false,
+  setIsDrawing: (value) => set({ isDrawing: value }),
 }));

@@ -1,15 +1,31 @@
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { ImageUploadCircle } from "@/shared/ui/ImageCircle";
 import { Input } from "@/shared/ui/Input";
 import { ItemField } from "@/shared/ui/ItemField";
-import { useState } from "react";
 
-export const UpdateProfileForm = () => {
+export type UpdateProfileRef = {
+  getFormData: () => FormData;
+};
+
+export const UpdateProfileForm = forwardRef<UpdateProfileRef>((_, ref) => {
   const [nickname, setNickname] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    getFormData: () => {
+      const formData = new FormData();
+      formData.append("nickname", nickname);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      return formData;
+    },
+  }));
 
   return (
     <div className="flex flex-col gap-3">
       <div className="self-center mb-2">
-        <ImageUploadCircle />
+        <ImageUploadCircle onChange={setImageFile} />
       </div>
       <ItemField icon="person" fill title="닉네임" required>
         <Input
@@ -25,4 +41,4 @@ export const UpdateProfileForm = () => {
       </ItemField>
     </div>
   );
-};
+});

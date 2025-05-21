@@ -17,29 +17,45 @@ export function EnsembleRoomHeader() {
   const isPlaying = useGlobalStore((state) => state.isPlaying);
   const { showHeaderFooter } = useHeaderFooterStore();
   const { disconnectWithCleanup, setSpaceId, spaceId } = useSocketStore();
+  const isDrawing = useGlobalStore((state) => state.isDrawing);
+  const setIsDrawing = useGlobalStore((state) => state.setIsDrawing);
 
   const currentSpaceId = String(roomId ?? "unknown");
 
-  // 컴포넌트 마운트 시 spaceId를 store에 저장
   useEffect(() => {
     if (currentSpaceId && currentSpaceId !== "unknown") {
       setSpaceId(currentSpaceId);
       console.log("🎯 [Header] spaceId를 store에 설정:", currentSpaceId);
     }
-  }, [currentSpaceId, setSpaceId]);
+
+    // 접속 시 기본 드로잉 비활성화 상태 설정 (콘솔로 확인)
+    setIsDrawing(false);
+    console.log("🖌️ 기본 드로잉 상태:", false);
+  }, [currentSpaceId, setSpaceId, setIsDrawing]);
 
   const handleExit = async () => {
     console.log("🚪 [EXIT] 합주방 나가기 시도");
     console.log("🟡 store의 spaceId:", spaceId);
-
-    // socketStore의 disconnectWithCleanup 사용
     await disconnectWithCleanup();
-
     console.log("⏪ [EXIT] 이전 화면으로 이동");
     navigate(-1);
   };
 
-  const handleEdit = () => alert("악보 수정 기능 준비 중!");
+  const handleToggleDrawing = () => {
+    const next = !isDrawing;
+    setIsDrawing(next);
+    console.log("🎨 드로잉 상태 토글:", next);
+  };
+
+  useEffect(() => {
+    const handlePaletteOpen = () => {
+      setIsDrawing(true);
+      console.log("🎨 색상 선택기 열림 → 드로잉 활성화 true");
+    };
+    window.addEventListener("open-color-picker", handlePaletteOpen);
+    return () =>
+      window.removeEventListener("open-color-picker", handlePaletteOpen);
+  }, [setIsDrawing]);
 
   if (isPlaying && !showHeaderFooter) return null;
 
@@ -69,12 +85,40 @@ export function EnsembleRoomHeader() {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleEdit}
-          className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/20 transition-all"
-        >
-          <Icon icon="draw" tone="white" size={24} />
-        </button>
+        {isDrawing ? (
+          <>
+            <button
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("show-color-picker"));
+              }}
+              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/20 transition-all"
+            >
+              <Icon icon="palette" tone="white" size={24} />
+            </button>
+
+            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-400/80">
+              <Icon icon="pan_tool" tone="dark" size={20} />
+            </div>
+
+            <button
+              onClick={() => {
+                setIsDrawing(false);
+                console.log("❌ 드로잉 종료 → false");
+              }}
+              className="ml-2 bg-red-400 text-white px-3 py-1.5 rounded-md hover:bg-red-500 text-sm"
+            >
+              드로잉 종료
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={handleToggleDrawing}
+            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/20 transition-all"
+          >
+            <Icon icon="draw" tone="white" size={24} />
+          </button>
+        )}
+
         <Button
           color="light"
           className="!bg-[#FF4D79] !text-white hover:!bg-[#e04e4e] whitespace-nowrap px-3 py-1.5 rounded-md text-sm"
