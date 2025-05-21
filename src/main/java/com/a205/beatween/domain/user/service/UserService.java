@@ -1,5 +1,6 @@
 package com.a205.beatween.domain.user.service;
 
+import com.a205.beatween.common.jwt.JwtUtil;
 import com.a205.beatween.common.reponse.Result;
 import com.a205.beatween.common.util.S3Util;
 import com.a205.beatween.domain.song.dto.CopySongDto;
@@ -11,6 +12,8 @@ import com.a205.beatween.domain.space.entity.Category;
 import com.a205.beatween.domain.space.enums.SpaceType;
 import com.a205.beatween.domain.space.repository.CategoryRepository;
 import com.a205.beatween.domain.space.service.SpaceService;
+import com.a205.beatween.domain.user.dto.LoginDto;
+import com.a205.beatween.domain.user.dto.SignupDto;
 import com.a205.beatween.domain.user.dto.UserInfoDto;
 import com.a205.beatween.domain.user.entity.User;
 import com.a205.beatween.domain.user.enums.UserStatus;
@@ -21,8 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,40 @@ public class UserService {
     final CategoryRepository categoryRepository;
     final CopySongRepository copySongRepository;
     private final S3Util s3Util;
+    private final JwtUtil jwtUtil;
+
+    public Result<?> signup(SignupDto signupDto) {
+        // 회원가입 시 이메일 중복 체크
+        if (userRepository.existsByEmail(signupDto.getEmail())) {
+            return Result.error(HttpStatus.BAD_REQUEST.value(), "이미 가입된 이메일입니다.");
+        }
+        // 회원가입 시 닉네임 중복 체크
+        if (userRepository.existsByNickname(signupDto.getNickname())) {
+            return Result.error(HttpStatus.BAD_REQUEST.value(), "이미 가입된 닉네임입니다.");
+        }
+        User user = User.builder()
+                .email(signupDto.getEmail())
+                .nickname(signupDto.getNickname())
+                .password(signupDto.getPassword())
+                .profileImageUrl(null)
+                .userStatus(UserStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user);
+        return Result.success("회원가입 성공");
+    }
+
+    public Result<Map<String, String>> login(LoginDto loginDto) {
+//        // 1. 인증(패스워드 일치 여부 체크)
+//        User user = userService.authenticate(loginDto);
+        User user = userRepository.findByEmail(loginDto.getEmail()).orElse(null);
+        // 2. JWT 생성
+        String token = jwtUtil.createToken(user.getUserId().toString());
+        // 3. 토큰 반환
+        Map<String, String> data = Map.of("token", token);
+        return Result.success(data);
+    }
 
     public Result<UserInfoDto> getUserInfo(Integer userId) {
         UserInfoDto userInfoDto = null;
