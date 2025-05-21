@@ -89,7 +89,9 @@ export const SpaceContentLayout = ({
       setStompClient(client);
 
       try {
-        const res = await axiosInstance.get(`/spaces/${spaceId}/selected-song`);
+        const res = await axiosInstance.get(
+          `api/v1/spaces/${spaceId}/selected-song`
+        );
 
         const data = res.data;
 
