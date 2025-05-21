@@ -90,7 +90,7 @@ export const SpaceContentLayout = ({
 
       try {
         const res = await axiosInstance.get(
-          `api/v1/spaces/${spaceId}/selected-song`
+          `api/v1/play/${spaceId}/selected-song`
         );
 
         const data = res.data;
