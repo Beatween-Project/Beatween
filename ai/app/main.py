@@ -126,7 +126,8 @@ async def process_youtube(req: YoutubeRequest):
         for item in STORAGE_PATH.iterdir():
             try:
                 if item.is_dir():
-                    shutil.rmtree(item)  # 디렉터리 전체 삭제
+                    # shutil.rmtree(item)  # 디렉터리 전체 삭제
+                    pass
                 else:
                     item.unlink()  # 파일 삭제
             except Exception as e:
