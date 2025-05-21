@@ -3,14 +3,15 @@ package com.a205.beatween.common.event;
 import java.security.Principal;
 
 public class StompPrincipal implements Principal {
-    private final String name;
 
-    public StompPrincipal(String name) {
-        this.name = name;
+    private final String userId;
+
+    public StompPrincipal(String userId) {
+        this.userId = userId;
     }
 
     @Override
     public String getName() {
-        return name;
+        return userId;
     }
 }

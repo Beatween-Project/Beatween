@@ -1,6 +1,7 @@
 package com.a205.beatween.domain.play.service;
 
 import com.a205.beatween.common.reponse.Result;
+import com.a205.beatween.domain.drawing.dto.DrawingPoint;
 import com.a205.beatween.domain.drawing.service.DrawingService;
 import com.a205.beatween.domain.play.dto.*;
 import com.a205.beatween.domain.song.entity.CopySheet;
@@ -26,6 +27,7 @@ public class PlayServiceImpl implements PlayService {
     private final DrawingService drawingService;
     private final CategoryRepository categoryRepository;
     private final CopySongRepository copySongRepository;
+    private final CopySheetRepository copySheetRepository;
 
     @Override
     public void savePlaySession(PlayControlMessage message) {
@@ -180,9 +182,15 @@ public class PlayServiceImpl implements PlayService {
         String selectedKey = "ws:space:" + spaceId + ":selectedSong";
         redisTemplate.opsForValue().set(selectedKey, String.valueOf(copySongId));
 
-        log.info("곡 선택 저장 - spaceId: {}, copySongId: {}, managerSession: {}", spaceId, copySongId, managerSessionId);
+        messagingTemplate.convertAndSend(
+                "/topic/play/selected-song/" + spaceId,
+                new SelectedSongBroadcastMessage(copySongId)
+        );
+
+        log.info("곡 선택 저장 및 브로드캐스트 - spaceId: {}, copySongId: {}, managerSession: {}", spaceId, copySongId, managerSessionId);
         return Result.success(null);
     }
+
 
     @Override
     public Result<SelectedSongResponse> getSelectedSong(Integer spaceId) {
@@ -194,6 +202,26 @@ public class PlayServiceImpl implements PlayService {
         }
 
         return Result.success(new SelectedSongResponse(Integer.parseInt(value)));
+    }
+
+    @Override
+    public Result<SheetWithDrawingResponse> getSheetWithDrawing(String spaceId, Integer copySheetId) {
+
+        CopySheet sheet = copySheetRepository.findById(copySheetId).orElse(null);
+        if (sheet == null) {
+            return Result.error(404, "해당 악보를 찾을 수 없습니다.");
+        }
+
+        List<DrawingPoint> drawings = drawingService.getDrawingBySheet(spaceId, copySheetId);
+
+        SheetWithDrawingResponse response = SheetWithDrawingResponse.builder()
+                .copySheetId(sheet.getCopySheetId())
+                .part(sheet.getPart())
+                .sheetUrl(sheet.getSheetUrl())
+                .drawings(drawings)
+                .build();
+
+        return Result.success(response);
     }
 
 

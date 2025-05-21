@@ -1,12 +1,11 @@
 package com.a205.beatween.domain.play.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class SelectSongRequest {
+public class SelectedSongBroadcastMessage {
     private Integer copySongId;
 }
+

@@ -24,4 +24,7 @@ public interface PlayService {
 
     Result<SelectedSongResponse> getSelectedSong(Integer spaceId);
 
+    Result<SheetWithDrawingResponse> getSheetWithDrawing(String spaceId, Integer copySheetId);
+
+
 }
