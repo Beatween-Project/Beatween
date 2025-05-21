@@ -7,9 +7,10 @@ from yt_dlp.utils import DownloadError
 # 다양한 유튜브 URL 패턴을 지원하는 정규식
 _YT_ID_RE = re.compile(r'(?:v=|\/)([0-9A-Za-z_-]{11})')
 
-# 구글 아이디, 비밀번호 환경변수 불러오기
-YTDLP_USER = get_settings().GOOGLE_ID
-YTDLP_PASS = get_settings().GOOGLE_PW
+# 쿠키 불러오기
+COOKIE_FILE = get_settings().COOKIE_FILE
+if not os.path.exists(COOKIE_FILE):
+    raise FileNotFoundError(f"쿠키 파일이 존재하지 않습니다: {COOKIE_FILE}")
 
 # YouTube ID 추출
 def extract_youtube_id(url: str) -> str | None:
@@ -111,8 +112,7 @@ def download_youtube_audio(youtube_url: str, storage_path: str) -> dict:
                 {"key": "FFmpegExtractAudio", "preferredcodec": "wav"},
             ],
             "quiet": True,
-            "username": YTDLP_USER,
-            "password": YTDLP_PASS,
+            "cookiefile": str(COOKIE_FILE),
         }
 
         # 1차 시도 – 오디오 + 제작자(수동) 자막

@@ -14,10 +14,9 @@ class Settings(BaseSettings):
     # OPENAI API 키
     OPENAI_API_KEY: str = ""
 
-    # GOOGLE 로그인 ID, PW
-    GOOGLE_ID: str = ""
-    GOOGLE_PW: str = ""
-    
+    # GOOGLE 로그인 쿠키
+    COOKIE_FILE: str = "/app/cookies.txt"
+
     class Config:
         env_file = ".env"
 
