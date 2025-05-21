@@ -8,3 +8,9 @@ export interface ResponseDto<T> {
   error: ErrorResponse | null;
   data: T;
 }
+
+export interface Result<T> {
+  success: boolean;
+  data: T;
+  error: ErrorResponse | null;
+}

@@ -11,6 +11,8 @@ import { SpaceLayout } from "@/widgets/SpaceLayout";
 import { LayoutDefault } from "../layouts/LayoutDefault";
 import { TestPlaywithPage, TestSheetPage } from "@/pages/Test";
 import EnsembleRoom from "@/pages/EnsembleRoom/EnsembleRoom";
+import { LocalSignUpPage } from "@/features/auth/local/ui/LocalSignUpPage";
+import { LocalSignInPage } from "@/features/auth/local/ui/LocalSignInPage";
 
 const router = createBrowserRouter([
   {
@@ -64,6 +66,22 @@ const router = createBrowserRouter([
     element: (
       <LayoutDefault bgColor="black" noScroll>
         <TestPlaywithPage />
+      </LayoutDefault>
+    ),
+  },
+  {
+    path: "/signup",
+    element: (
+      <LayoutDefault bgColor="black" noScroll noSignButton>
+        <LocalSignUpPage />
+      </LayoutDefault>
+    ),
+  },
+  {
+    path: "/signin",
+    element: (
+      <LayoutDefault bgColor="black" noScroll noSignButton>
+        <LocalSignInPage />
       </LayoutDefault>
     ),
   },

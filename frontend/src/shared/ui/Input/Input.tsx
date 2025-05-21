@@ -1,4 +1,4 @@
-import { ChangeEvent, InputHTMLAttributes } from "react";
+import { ChangeEvent, FocusEventHandler, InputHTMLAttributes } from "react";
 
 interface InputProps {
   value: string;
@@ -8,6 +8,7 @@ interface InputProps {
   maxLength?: number;
   showCount?: boolean;
   className?: string;
+  onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
 export const Input = ({
@@ -18,6 +19,7 @@ export const Input = ({
   maxLength,
   showCount = false,
   className = "",
+  onBlur,
 }: InputProps) => {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -31,6 +33,7 @@ export const Input = ({
         type={type}
         value={value}
         onChange={handleChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         maxLength={maxLength}
         className={`border-box w-full bg-neutral300 text-neutral1000 placeholder:text-neutral600 border border-gray-300 rounded-xl px-4 py-2 ${

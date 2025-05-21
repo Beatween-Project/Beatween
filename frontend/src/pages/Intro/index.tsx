@@ -33,7 +33,7 @@ export const IntroPage = ({ onFinish }: IntroPageProps) => {
         >
           <div className="flex items-center gap-6 translate-x-[14.5vw] -translate-y-[5%]">
             <div className="relative text-neutral100">
-              박자로 채우는 우리 사이
+              박자로 이어지는 우리 사이
             </div>
             <img
               src={recordImage}

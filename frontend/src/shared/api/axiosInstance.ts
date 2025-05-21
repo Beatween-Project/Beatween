@@ -14,15 +14,12 @@ const axiosInstance = axios.create({
 // 요청시 Bearer 헤더 추가
 const requestHandler = (config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("accessToken");
-  const isHeaderSettable =
-    config.headers && typeof config.headers.set === "function";
 
-  if (token && isHeaderSettable) {
-    config.headers.set("Authorization", `Bearer ${token}`);
-  } else {
-    // 로그인 구현 이전 임시 헤더
+  if (token) {
     config.headers = config.headers || {};
-    config.headers["X-USER-ID"] = "1"; // 임시 userId
+    (config.headers as Record<string, string>)[
+      "Authorization"
+    ] = `Bearer ${token}`;
   }
 
   return config;

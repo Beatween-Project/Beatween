@@ -7,12 +7,14 @@ interface LayoutDefaultProps {
   children: ReactNode;
   bgColor?: string;
   noScroll?: boolean;
+  noSignButton?: boolean;
 }
 
 export const LayoutDefault = ({
   children,
   bgColor,
   noScroll,
+  noSignButton,
 }: LayoutDefaultProps) => {
   const navigate = useNavigate();
   const bgClass = bgColorClassMap[bgColor ? bgColor : "blue"];
@@ -28,6 +30,7 @@ export const LayoutDefault = ({
           navigate("/");
         }}
         className="relative"
+        isSignPage={noSignButton}
       />
       <main className="w-full h-[calc(100%-3.525rem)]">{children}</main>
     </div>

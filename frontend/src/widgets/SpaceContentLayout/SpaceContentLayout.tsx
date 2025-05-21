@@ -152,11 +152,11 @@ export const SpaceContentLayout = ({
               </div>
             )}
 
-            {bandData?.spaceName && (
-              <div className="text-2xl font-bold">
-                {type === "personal" ? "MY MUSIC" : bandData.spaceName}
-              </div>
-            )}
+            <div className="text-2xl font-bold">
+              {type === "personal"
+                ? "MY MUSIC"
+                : bandData?.spaceName && bandData.spaceName}
+            </div>
           </div>
           {bandData?.description && <div>{bandData.description}</div>}
           {type === "team" && (
