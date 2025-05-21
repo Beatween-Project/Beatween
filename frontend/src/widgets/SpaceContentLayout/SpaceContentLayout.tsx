@@ -3,7 +3,7 @@ import { ImageBox } from "./ui/ImageBox";
 import { PlaywithButton } from "./ui/PlaywithButton";
 import { ImageCircle } from "@/shared/ui/ImageCircle";
 import { useNavigate } from "react-router-dom";
-import { openConfirm, openModal } from "@/shared/lib/modal";
+import { openModal } from "@/shared/lib/modal";
 import { toast } from "@/shared/lib/toast";
 import { UpdateBandForm } from "@/features/updateBand/ui/UpdateBandForm";
 import { Client } from "@stomp/stompjs";
@@ -20,6 +20,8 @@ import { BandFormHandle } from "@/entities/band/ui/BandForm";
 import { useUpdateBand } from "@/features/updateBand/hooks/useUpdateBand";
 import { useSpaceVersionStore } from "@/entities/band/store/spaceVersionStore";
 import { formatDate } from "@/shared/lib/formatDate";
+import { DeleteBandButton } from "@/features/deleteBand/ui/DeleteBandButton";
+import { ExitBandButton } from "@/features/deleteBand/ui/ExitBandButton";
 
 interface SpaceContentLayoutProps {
   type?: "personal" | "team";
@@ -196,40 +198,9 @@ export const SpaceContentLayout = ({
                   초대 링크 복사
                 </Button>
                 {isOwner ? (
-                  <Button
-                    icon="delete"
-                    fill
-                    color="caution"
-                    onClick={() =>
-                      openConfirm({
-                        title: "정말 밴드를 삭제하시겠습니까?",
-                        info: "한 번 지우는 밴드는 다시 되돌릴 수 없습니다",
-                        cancelText: "그만두기",
-                        okText: "삭제하기",
-                        onConfirm: () => console.log("삭제 구현 예정"),
-                        onCancel: () => console.log("취소됨"),
-                      })
-                    }
-                  >
-                    밴드 삭제하기
-                  </Button>
+                  <DeleteBandButton spaceId={teamId} />
                 ) : (
-                  <Button
-                    icon="logout"
-                    color="caution"
-                    onClick={() =>
-                      openConfirm({
-                        title: "정말 밴드를 나가시겠습니까?",
-                        info: "다시 밴드에 들어가기 위해서는 밴드 관리자의 초대가 필요합니다",
-                        cancelText: "아니오",
-                        okText: "나가기",
-                        onConfirm: () => console.log("나가기 구현 예정"),
-                        onCancel: () => console.log("취소됨"),
-                      })
-                    }
-                  >
-                    밴드 나가기
-                  </Button>
+                  <ExitBandButton spaceId={teamId} />
                 )}
               </>
             )}
