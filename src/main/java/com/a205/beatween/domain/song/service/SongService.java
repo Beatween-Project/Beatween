@@ -156,7 +156,7 @@ public class SongService {
     }
 
     private Mono<CreateSheetResponseDto> callFastApi(UrlRequestDto urlRequestDto) {
-        String fastApiUrl = "http://localhost:8000/ai/transcription";
+        String fastApiUrl = "http://fastapi:8000/ai/transcription";
         return webClient.post()
                 .uri(fastApiUrl)
                 .bodyValue(urlRequestDto)  // FastAPI 요청 DTO
