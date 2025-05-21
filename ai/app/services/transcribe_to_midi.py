@@ -119,7 +119,9 @@ def preprocess_drum_audio(audio_path):
 def transcribe_drums_with_omnizart(drums_path: str, storage_path: str) -> dict:
     try:
         # 1. 오디오 전처리
+        print("오디오 전처리 시작")
         y_processed, sr = preprocess_drum_audio(drums_path)
+        print("오디오 전처리 완료")
         # 2. 임시 파일 저장
         temp_path = save_temp_wav(y_processed, sr, drums_path)
         rel_path = os.path.relpath(temp_path, storage_path)

@@ -67,7 +67,7 @@ async def process_youtube(req: YoutubeRequest):
             new_track.export(path_list[stem], format="wav")
 
         end_time = tcm.get_wav_duration(path_list["other"])
-        print("악기 분리 완료")
+        print(f"악기 분리 완료 : path_list>{path_list}")
         
         # 3. 전사 요청
         print("midi 전사 시작")
