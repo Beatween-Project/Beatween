@@ -1,17 +1,22 @@
 package com.a205.beatween.common.event;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.WebSocketHandler;
+import com.a205.beatween.common.jwt.JwtUtil;
 
 import java.util.Map;
 
 @Slf4j
+@RequiredArgsConstructor
 public class UserHandshakeInterceptor implements HandshakeInterceptor {
+
+    private final JwtUtil jwtUtil;
 
     @Override
     public boolean beforeHandshake(
@@ -32,8 +37,7 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
                 }
 
                 // 사용자 DB의 PK 추출
-//                Integer userId = JwtUtil.extractUserId(token); // JWT로부터 PK 추출
-                Integer userId = 2;
+                Integer userId = jwtUtil.extractUserId(token); // JWT로부터 PK 추출
                 attributes.put("user", new StompPrincipal(userId.toString())); // 반드시 String
 
                 if (spaceId != null) {

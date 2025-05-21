@@ -1,5 +1,6 @@
 package com.a205.beatween.domain.play.controller;
 
+import com.a205.beatween.common.jwt.JwtUtil;
 import com.a205.beatween.common.reponse.ResponseDto;
 import com.a205.beatween.common.reponse.Result;
 import com.a205.beatween.domain.play.dto.*;
@@ -19,8 +20,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/play")
 @RequiredArgsConstructor
 public class PlayController {
+
     private final PlayService playService;
     private final CopySongRepository copySongRepository;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/state/{spaceId}")
     public ResponseEntity<PlayControlMessage> getPlayState(@PathVariable("spaceId") Integer spaceId) {
@@ -50,8 +53,7 @@ public class PlayController {
     ) {
         try {
             if (token.startsWith("Bearer ")) token = token.substring(7);
-//            Integer userId = JwtUtil.extractUserId(token);
-            Integer userId = 2;
+            Integer userId = jwtUtil.extractUserId(token);
 
             Result<Void> result = playService.selectSong(
                     spaceId,
