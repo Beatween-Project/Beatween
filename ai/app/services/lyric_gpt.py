@@ -68,8 +68,8 @@ def _prompt_with_vtt(song_title: str, duration_sec: int, vtt_content: str) -> Li
                 When given:
                 
                 1. An incomplete WEBVTT file (may contain partial timestamps and fragments)
-                2. The song title: {song_title}
-                3. The total duration of the song : {duration_sec} seconds
+                2. The full official lyrics of the song : {song_title}
+                3. The total duration of the song : {duration_sec}
                 
                 Your task:
                 
@@ -115,6 +115,7 @@ def _prompt_with_vtt(song_title: str, duration_sec: int, vtt_content: str) -> Li
                 Warning: Do not change the timestamps if you are not modifying the content.
 
                 """
+
             ),
         },
         {
@@ -134,24 +135,15 @@ def _prompt_no_vtt(song_title: str, duration_sec: int) -> List[Dict[str, str]]:
             "role": "system",
             "content": (
                 f"""
-                You are a lyric provider and caption formatter. 
-                If no lyrics are provided, use the variables {song_title} and {duration_sec} to fetch the full official lyrics from the internet, then generate a complete WEBVTT file spanning the entire duration ({duration_sec} seconds) with 2–5 second intervals per caption, starting at 00:00.000. Return ONLY the finished WEBVTT string, without any additional text or formatting.
+                다음 vtt 파일을 반환한다.
                 
-                Example
-                
-                인터넷에서 찾은 가사
                 ```
-                가로등 불빛 아래 그 골목길
-                남몰래 주고 받았었던 쪽지
-                ```
+                WEBVTT
+                Kind: captions
+                Language: ko
                 
-                변환 결과
-                ```
-                00:00:13.000 --> 00:00:17.230
-                가로등 불빛 아래 그 골목길
-                
-                00:00:17.240 --> 00:00:22.630
-                남몰래 주고 받았었던 쪽지
+                00:00:00.000 --> 00:00:10.000
+                가사 생성 불가
                 ```
 
                 """
@@ -173,22 +165,8 @@ def update_lyrics_vtt(
     vtt_paths: List[str],
     song_title: str,
     duration_sec: int,
+    vtt_official: bool,
 ) -> str:
-    """
-    기존 VTT 목록을 받아 가장 적합한 자막을 GPT로 교정하거나,
-    없으면 새로 생성해 같은 위치에 저장한다.
-
-    Parameters
-    ----------
-    vtt_paths : list[str]
-        다운로드된 VTT 경로 리스트 (없으면 [])
-    song_title : str
-    duration_sec : int
-
-    Returns
-    -------
-    str : 최종 저장된 VTT 경로
-    """
     # ── 1) 사용할 VTT 선택 ───────────────────────
     song_lang = _detect_song_lang(song_title)
     selected: Optional[Path] = None
@@ -208,15 +186,19 @@ def update_lyrics_vtt(
     # ── 2) GPT 클라이언트 ───────────────────────
     client = _make_client()
 
+    # 공식 자막 존재 시 바로 반환
+    if vtt_official and selected and selected.exists():
+        print(f"공식 VTT 사용 → {selected.name}")
+        return str(selected)
+
     if selected and selected.exists():
-        # (A) 기존 VTT 교정
-        print(f"선택된 VTT → {selected.name}")
+        print(f"선택된 자동생성 VTT 수정 → {selected.name}")
         prompt = _prompt_with_vtt(
-            song_title,duration_sec, selected.read_text(encoding="utf-8")
+            song_title, duration_sec, selected.read_text(encoding="utf-8")
         )
         target = selected
     else:
-        # (B) 새 VTT 생성
+        # 새 VTT 생성
         print("VTT 없음 → 새로 생성")
         folder = Path(selected).parent if selected else Path(".")
         folder.mkdir(parents=True, exist_ok=True)

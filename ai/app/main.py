@@ -13,6 +13,8 @@ from services.lyric_gpt import update_lyrics_vtt
 from schemas.request import YoutubeRequest
 from schemas.response import CreateSheetResponse
 
+import shutil
+
 app = FastAPI()
 
 api_router = APIRouter(prefix="/ai")
@@ -41,11 +43,12 @@ async def process_youtube(req: YoutubeRequest):
         song_title = wav_info["title"]
         duration_sec = wav_info["duration_sec"]
         subtitle_paths = wav_info["subtitles"]
+        vtt_official = wav_info["vtt_official"]
         print("유튜브 오디오 다운로드 완료")
 
         # 가사 생성
         print("가사 생성(gpt) 시작")
-        vtt_path = update_lyrics_vtt(subtitle_paths, song_title, duration_sec)
+        vtt_path = update_lyrics_vtt(subtitle_paths, song_title, duration_sec, vtt_official)
         print("가사 생성 완료")
 
         uniq_name = dlw.extract_youtube_id(req.youtube_url)
@@ -119,9 +122,18 @@ async def process_youtube(req: YoutubeRequest):
             thumbnail_url = None
         print("S3 업로드 완료")
 
+        # storage 폴더 내의 모든 파일 삭제
+        for item in STORAGE_PATH.iterdir():
+            try:
+                if item.is_dir():
+                    shutil.rmtree(item)  # 디렉터리 전체 삭제
+                else:
+                    item.unlink()  # 파일 삭제
+            except Exception as e:
+                print(f"삭제 실패: {item!r} → {e}")
 
         return CreateSheetResponse(
-            title=uniq_name,
+            title=song_title,
             youtube_url=req.youtube_url,
             thumbnail_url=thumbnail_url,
             bpm=bpm,
