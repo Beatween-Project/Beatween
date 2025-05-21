@@ -119,6 +119,7 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
               onColorChange={setSelectedColor}
               isSocketConnected={isSocketConnected}
               stompClient={stompClient}
+              isDrawing={true} // 또는 상태에서 가져온 값
             />
           )}
         </div>

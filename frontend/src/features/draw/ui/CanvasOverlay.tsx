@@ -11,6 +11,7 @@ interface CanvasOverlayProps {
   isSocketConnected: boolean;
   stompClient: any;
   isDrawing: boolean;
+  isPaletteVisible: boolean; // ✅ 이 줄 추가
 }
 
 type KonvaCompositeOperation = "source-over" | "destination-out";

@@ -7,7 +7,6 @@ import { openModal } from "@/shared/lib/modal";
 import { toast } from "@/shared/lib/toast";
 import { UpdateBandForm } from "@/features/updateBand/ui/UpdateBandForm";
 import { Client } from "@stomp/stompjs";
-import { useGlobalStore } from "@/app/store/globalStore";
 import { useSocketStore } from "@/app/store/socketStore";
 import SockJS from "sockjs-client";
 import { NoteList } from "./ui/NoteList";
@@ -22,6 +21,8 @@ import { useSpaceVersionStore } from "@/entities/band/store/spaceVersionStore";
 import { formatDate } from "@/shared/lib/formatDate";
 import { DeleteBandButton } from "@/features/deleteBand/ui/DeleteBandButton";
 import { ExitBandButton } from "@/features/deleteBand/ui/ExitBandButton";
+import { useGlobalStore } from "@/app/store/globalStore";
+import axiosInstance from "@/shared/api/axiosInstance";
 
 interface SpaceContentLayoutProps {
   type?: "personal" | "team";
@@ -38,6 +39,12 @@ export const SpaceContentLayout = ({
 
   const updateFormRef = useRef<BandFormHandle>(null);
   const { mutate: updateBandMutate } = useUpdateBand(Number(teamId));
+  const navigate = useNavigate();
+  const setStompClient = useSocketStore((state) => state.setStompClient);
+  const versionUser = useUserImageVersionStore((state) => state.version);
+  const versionSpace = useSpaceVersionStore((state) =>
+    state.getVersion(teamId)
+  );
 
   const handleConfirm = () => {
     const formData = updateFormRef.current?.getFormData();
@@ -48,50 +55,72 @@ export const SpaceContentLayout = ({
       });
       return;
     }
-
     updateBandMutate(formData);
   };
 
-  const navigate = useNavigate();
-  const setStompClient = useSocketStore((state) => state.setStompClient);
-
-  const versionUser = useUserImageVersionStore((state) => state.version);
-
-  const versionSpace = useSpaceVersionStore((state) =>
-    state.getVersion(teamId)
-  );
-
   const handlePlayWithClick = () => {
-    const clientId = useGlobalStore.getState().clientId;
-    const spaceId = String(teamId ?? 1);
+    const spaceId = String(teamId);
+    const token = localStorage.getItem("accessToken");
 
-    const headers = {
-      spaceId,
-      userId: String(clientId),
-    };
+    if (!token) {
+      toast.error({
+        title: "인증 실패",
+        message: "로그인이 필요합니다.",
+      });
+      return;
+    }
 
-    console.log("📡 WebSocket connectHeaders:", headers);
+    const encodedToken = encodeURIComponent(`Bearer ${token}`);
+    const wsUrl = `${
+      import.meta.env.VITE_BROKER_URL
+    }?spaceId=${spaceId}&token=${encodedToken}`;
 
     const client = new Client({
-      webSocketFactory: () =>
-        new SockJS(
-          `${
-            import.meta.env.VITE_BROKER_URL
-          }?spaceId=${spaceId}&userId=${clientId}`
-        ),
+      webSocketFactory: () => new SockJS(wsUrl),
       reconnectDelay: 5000,
-      connectHeaders: headers,
+      connectHeaders: {
+        spaceId,
+      },
       debug: (msg) => console.log("🔹 STOMP DEBUG:", msg),
     });
 
-    client.onConnect = () => {
+    client.onConnect = async () => {
       console.log("✅ WebSocket connected");
       setStompClient(client);
-      navigate(`/room/${spaceId}`);
-    };
 
-    client.onStompError = (frame) => {
-      console.error("💥 STOMP error:", frame);
+      try {
+        const res = await axiosInstance.get(`/spaces/${spaceId}/selected-song`);
+
+        const data = res.data;
+
+        if (res.status === 200 && data?.data?.copySongId) {
+          console.log("🎵 선택된 곡 있음:", data.data.copySongId);
+          navigate(`/room/${spaceId}`);
+        } else {
+          console.log("🕒 선택된 곡 없음");
+          const isManager = useGlobalStore.getState().isManager;
+
+          if (isManager) {
+            console.log(
+              "🎩 매니저입니다 → ScoreSelectModal이 자동 호출될 예정"
+            );
+            navigate(`/room/${spaceId}`);
+          } else {
+            toast.info({
+              title: "대기 중",
+              message: "관리자가 곡을 선택할 때까지 기다려 주세요.",
+            });
+            navigate(`/room/${spaceId}`);
+          }
+        }
+      } catch (error) {
+        console.error("❌ 선택된 곡 조회 실패:", error);
+        toast.error({
+          title: "요청 실패",
+          message: "곡 정보를 불러오는 데 실패했습니다.",
+        });
+        navigate(`/room/${spaceId}`);
+      }
     };
 
     client.activate();
@@ -99,11 +128,8 @@ export const SpaceContentLayout = ({
 
   const { data, error, isLoading } = useSpaceDetail(teamId);
 
-  if (isLoading) {
-    return <div>로딩중...</div>;
-  }
+  if (isLoading) return <div>로딩중...</div>;
   if (error) return <div>에러: {error.message}</div>;
-
   if (data && !data.success)
     return (
       <div className="py-6 text-warning font-bold">
@@ -113,7 +139,6 @@ export const SpaceContentLayout = ({
 
   const isOwner = data?.data.roleType === "OWNER";
   const bandData = data?.data;
-
   const versionedSpaceImageUrl = bandData?.imageUrl
     ? `${bandData.imageUrl}?t=${versionSpace}`
     : undefined;
@@ -121,14 +146,13 @@ export const SpaceContentLayout = ({
   return (
     <div>
       <div className="relative flex flex-wrap gap-6 w-full px-6 py-7 min-w-fit z-[0]">
-        {/* background */}
         <div
           className="absolute inset-0 bg-cover bg-center filter blur-[6px] z-[-1]"
           style={{
             backgroundImage: `
-        linear-gradient(to top, rgba(27, 32, 53, 1), rgba(27, 32, 53, 0)),
-        url(${versionedSpaceImageUrl})
-      `,
+              linear-gradient(to top, rgba(27, 32, 53, 1), rgba(27, 32, 53, 0)),
+              url(${versionedSpaceImageUrl})
+            `,
           }}
         />
         <ImageBox
@@ -151,11 +175,8 @@ export const SpaceContentLayout = ({
                 {formatDate(bandData.createAt)}
               </div>
             )}
-
             <div className="text-2xl font-bold">
-              {type === "personal"
-                ? "MY MUSIC"
-                : bandData?.spaceName && bandData.spaceName}
+              {type === "personal" ? "MY MUSIC" : bandData?.spaceName}
             </div>
           </div>
           {bandData?.description && <div>{bandData.description}</div>}
@@ -215,9 +236,8 @@ export const SpaceContentLayout = ({
         <CreateSheetButton teamId={teamId} />
         {type === "team" && <PlaywithButton onClick={handlePlayWithClick} />}
       </div>
-      {/* note list */}
+
       <div className="px-6 py-10 flex flex-col gap-6">
-        {/* list title */}
         <div className="flex flex-wrap justify-between">
           <div className="text-2xl font-bold">악보 목록</div>
           <ManageCategoryButton spaceId={teamId} />

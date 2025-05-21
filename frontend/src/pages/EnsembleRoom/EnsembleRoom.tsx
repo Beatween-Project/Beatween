@@ -40,6 +40,7 @@ export default function EnsembleRoom() {
           isSocketConnected={true}
           stompClient={null}
           isDrawing={isDrawing}
+          isPaletteVisible={true} // ✅ 이게 빠졌다는 오류
         />
       </div>
 
