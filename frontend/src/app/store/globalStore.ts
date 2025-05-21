@@ -36,10 +36,12 @@ export const useGlobalStore = create<GlobalState>((set, get) => ({
   login: (token) => {
     localStorage.setItem("accessToken", token);
     set({ accessToken: token });
+    window.location.href = "/";
   },
   logout: () => {
     localStorage.removeItem("accessToken");
     set({ accessToken: null });
+    window.location.href = "/";
   },
   isPlaying: false,
   setIsPlaying: (status) => set({ isPlaying: status }),
