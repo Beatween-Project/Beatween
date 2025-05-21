@@ -24,6 +24,14 @@ public class CategoryController {
             @RequestParam("name") String name
     ) {
         CategoryDto category = categoryService.createCategory(spaceId,name);
+        if(category == null) {
+            ResponseDto<Object> result = ResponseDto
+                    .builder()
+                    .success(false)
+                    .data("이 카테고리 명은 사용할 수 없습니다.")
+                    .build();
+            return ResponseEntity.ok(result);
+        }
         ResponseDto<Object> result = ResponseDto
                 .builder()
                 .success(true)
@@ -54,6 +62,14 @@ public class CategoryController {
             @RequestParam("name") String name
     ) {
         CategoryDto categoryDto = categoryService.updateCategory(categoryId, name);
+        if(categoryDto == null) {
+            ResponseDto<Object> result = ResponseDto
+                    .builder()
+                    .success(false)
+                    .data("기본 카테고리는 변경할 수 없습니다.")
+                    .build();
+            return ResponseEntity.ok(result);
+        }
         ResponseDto<Object> result = ResponseDto
                 .builder()
                 .success(true)

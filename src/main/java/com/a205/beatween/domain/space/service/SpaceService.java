@@ -81,6 +81,14 @@ public class SpaceService {
         Space savedSpace = spaceRepository.save(newTeamSpace);
         System.out.println("savedSpaceId = " + savedSpace.getSpaceId());
 
+        Category category = Category
+                .builder()
+                .space(savedSpace)
+                .name("기본")
+                .build();
+
+        categoryRepository.save(category);
+
         User user = userRepository.findById(userId).orElse(null);
 
         Integer savedSpaceId = savedSpace.getSpaceId();

@@ -33,6 +33,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryDto createCategory(Integer spaceId, String name) {
+        if(name.equals("기본")) {
+            return null;
+        }
         Space space = spaceRepository.getReferenceById(spaceId);
         Category category = Category
                 .builder()
@@ -66,6 +69,9 @@ public class CategoryService {
     @Transactional
     public CategoryDto updateCategory(Integer categoryId, String name) {
         Category category = categoryRepository.getReferenceById(categoryId);
+        if(category.getName().equals("기본")) {
+            return null;
+        }
         category.setName(name);
         category = categoryRepository.save(category);
         return CategoryDto
@@ -78,6 +84,10 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Integer categoryId) {
+        Category category = categoryRepository.getReferenceById(categoryId);
+        if(category.getName().equals("기본")) {
+            return;
+        }
         List<CopySong> copySongList = copySongRepository.findByCategory_CategoryId(categoryId);
         for (CopySong copySong : copySongList) {
             List<CopySheet> copySheetList = copySheetRepository.findByCopySong_CopySongId(copySong.getCopySongId());

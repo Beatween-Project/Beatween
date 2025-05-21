@@ -87,7 +87,7 @@ public class SpaceController {
     }
 
     @GetMapping("/teams/{spaceId}")
-    public ResponseEntity<Result<?>> getTeamSpaceInviationLink(
+    public ResponseEntity<Result<?>> getTeamSpaceInvitationLink(
             @PathVariable("spaceId") Integer spaceId
     ) {
         Result<String> invitationLink = spaceService.getTeamSpaceInvitationLink(spaceId);
