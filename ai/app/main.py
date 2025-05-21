@@ -74,14 +74,17 @@ async def process_youtube(req: YoutubeRequest):
         midi_results = {}
         # 드럼
         midi_results["drum"] = str(STORAGE_PATH)+ "/" + tcm.transcribe_drums_with_omnizart(path_list["drums"], str(STORAGE_PATH))
+        print("드럼 전사 완료")
         # 베이스
         midi_results["bass"] = tcm.bass_audio_to_midi(path_list["bass"], path_list["bass"].replace(".wav", ".mid"))
+        print("베이스 전사 완료")
         # 기타
         # results["guitar"] = str(STORAGE_PATH)+ "/" + tcm.transcribe_music_with_omnizart(path_list["other"], str(STORAGE_PATH))
         midi_results["guitar"] = tcm.guitar_audio_to_midi(path_list["other"], path_list["other"].replace(".wav", ".mid"))
+        print("기타 전사 완료")
         # 보컬
         midi_results["vocal"] = tcm.vocal_audio_to_midi(path_list["vocals"], path_list["vocals"].replace(".wav", ".mid"))
-        print("midi 전사 완료")
+        print("전체 전사 완료")
 
         # bpm 조정
         print("bpm 조정")
