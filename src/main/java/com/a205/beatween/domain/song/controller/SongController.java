@@ -1,6 +1,7 @@
 package com.a205.beatween.domain.song.controller;
 
 import com.a205.beatween.common.event.SseEmitters;
+import com.a205.beatween.common.jwt.JwtUtil;
 import com.a205.beatween.common.reponse.ResponseDto;
 import com.a205.beatween.common.reponse.Result;
 import com.a205.beatween.domain.song.dto.*;
@@ -21,6 +22,7 @@ import java.util.List;
 public class SongController {
     private final SongService songService;
     private final SseEmitters sseEmitters;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/{songId}/categories/{categoryId}/sheets/{sheetId}")
     public ResponseEntity<ResponseDto<CopySheetResponseDto>> getSheet(
@@ -28,8 +30,9 @@ public class SongController {
             @PathVariable("songId") Integer songId,
             @PathVariable("categoryId") Integer categoryId,
             @PathVariable("sheetId") Integer sheetId,
-            @RequestHeader("X-USER-ID") Integer userId //로그인 구현 이전 임시 헤더
+            @RequestHeader("Authorization") String token
     ){
+        Integer userId = jwtUtil.extractUserId(token);
         Result<CopySheetResponseDto> result = songService.getCopySheet(userId, spaceId, songId, categoryId, sheetId);
         return ResponseEntity.ok(ResponseDto.from(result));
     }
@@ -37,9 +40,9 @@ public class SongController {
     @PostMapping("/sheets")
     public ResponseEntity<Void> createSheet(
             @PathVariable("spaceId") Integer spaceId,
-            @RequestHeader("X-USER-ID") Integer userId, //로그인 구현 이전 임시 헤더
+            @RequestHeader("Authorization") String token,
             @RequestBody UrlRequestDto urlRequestDto) {
-
+        Integer userId = jwtUtil.extractUserId(token);
         songService.createSheet(urlRequestDto, userId, spaceId);
 
         return ResponseEntity.ok().build();
@@ -48,8 +51,9 @@ public class SongController {
     @GetMapping(value = "/sheets/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
             @PathVariable("spaceId") Integer spaceId,
-            @RequestParam("X-USER-ID") Integer userId) {
+            @RequestHeader("Authorization") String token) {
 
+        Integer userId = jwtUtil.extractUserId(token);
         SseEmitter emitter = sseEmitters.add(userId, spaceId);
 
         // 연결 즉시 초기 이벤트 전송

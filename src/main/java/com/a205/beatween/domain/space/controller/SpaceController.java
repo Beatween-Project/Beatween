@@ -1,5 +1,6 @@
 package com.a205.beatween.domain.space.controller;
 
+import com.a205.beatween.common.jwt.JwtUtil;
 import com.a205.beatween.common.reponse.Result;
 import com.a205.beatween.domain.space.dto.InvitationDto;
 import com.a205.beatween.domain.space.dto.CreateTeamDto;
@@ -32,27 +33,29 @@ import java.security.Principal;
 public class SpaceController {
 
     private final SpaceService spaceService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Validated
     @ResponseStatus(HttpStatus.CREATED)
     public CreateTeamDto createTeamSpace(
-            @RequestHeader("X-USER-ID") Integer userId, // 임시 헤더
+            @RequestHeader("Authorization") String token,
             @RequestParam("name") @NotBlank String name,
             @RequestParam(value = "description", required = false) String description,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         // ResponseEntity 없이 리턴 타입을 DTO로 바로 선언
+        Integer userId = jwtUtil.extractUserId(token);
         return spaceService.createTeamSpace(userId, name, description, image);
     }
 
     @GetMapping("/share/{teamSlug}/{shareKey}")
     public ResponseEntity<Result<?>> handleInvitationLink(
-            @RequestHeader("X-USER-ID") Integer userId, // 임시 헤더
+            @RequestHeader("Authorization") String token,
             @PathVariable String teamSlug,
             @PathVariable String shareKey
     ) {
-
+        Integer userId = jwtUtil.extractUserId(token);
         Result<InvitationDto> invitation = spaceService.resolveInvitationLink(userId, teamSlug, shareKey);
 
         return ResponseEntity.ok(invitation);
@@ -61,8 +64,9 @@ public class SpaceController {
 
     @GetMapping("/")
     public ResponseEntity<ResponseDto<Object>> getSpaces(
-            @RequestHeader("X-USER-ID") Integer userId
+            @RequestHeader("Authorization") String token
     ) {
+        Integer userId = jwtUtil.extractUserId(token);
         List<SpacePreDto> spacePreList = spaceService.getSpaces(userId);
         ResponseDto<Object> result = ResponseDto
                 .builder()
@@ -75,8 +79,9 @@ public class SpaceController {
     @GetMapping("/{spaceId}")
     public ResponseEntity<ResponseDto<Object>> getSpaceDetail(
             @PathVariable("spaceId") Integer spaceId,
-            @RequestHeader("X-USER-ID") Integer userId
+            @RequestHeader("Authorization") String token
     ) {
+        Integer userId = jwtUtil.extractUserId(token);
         SpaceDetailResponseDto spaceDetail = spaceService.getSpaceDetail(spaceId, userId);
         ResponseDto<Object> result = ResponseDto
                 .builder()
@@ -98,11 +103,12 @@ public class SpaceController {
     @PatchMapping("/{spaceId}")
     public ResponseEntity<ResponseDto<Object>> updateSpace(
             @PathVariable("spaceId") Integer spaceId,
-            @RequestHeader("X-USER-ID") Integer userId,
+            @RequestHeader("Authorization") String token,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "description", required = false) String description,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
+        Integer userId = jwtUtil.extractUserId(token);
         SpaceDetailResponseDto spaceDetail = spaceService.updateSpace(spaceId, userId, name, description, image);
         if (spaceDetail == null) {
             ResponseDto<Object> result = ResponseDto
@@ -123,8 +129,9 @@ public class SpaceController {
     @DeleteMapping("/teams/{spaceId}")
     public ResponseEntity<ResponseDto<Object>> deleteTeamSpace(
             @PathVariable("spaceId") Integer spaceId,
-            @RequestHeader("X-USER-ID") Integer userId
+            @RequestHeader("Authorization") String token
     ) {
+        Integer userId = jwtUtil.extractUserId(token);
         Integer state = spaceService.deleteTeamSpace(spaceId,userId);
         List<SpacePreDto> spacePreList = spaceService.getSpaces(userId);
         ResponseDto<Object> result = null;

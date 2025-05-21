@@ -11,6 +11,7 @@ import com.a205.beatween.domain.user.entity.User;
 import com.a205.beatween.domain.user.service.UserService;
 import com.a205.beatween.common.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.boot.jaxb.mapping.JaxbQueryHint;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,18 +48,20 @@ public class UserController {
 
     @GetMapping("/info")
     public ResponseEntity<Result<?>> getUserInfo(
-            @RequestHeader("X-USER-ID") Integer userId
+            @RequestHeader("Authorization") String token
     ) {
+        Integer userId = jwtUtil.extractUserId(token);
         Result<UserInfoDto> userInfoDtoResult = userService.getUserInfo(userId);
         return ResponseEntity.ok(userInfoDtoResult);
     }
 
     @PatchMapping("/")
     public ResponseEntity<ResponseDto<Object>> updateUserInfo(
-            @RequestHeader("X-USER-ID") Integer userId,
+            @RequestHeader("Authorization") String token,
             @RequestParam(value = "nickName", required = false) String nickName,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
+        Integer userId = jwtUtil.extractUserId(token);
         userService.updateUserInfo(userId,nickName,image);
         ResponseDto<Object> result = ResponseDto
                 .builder()
