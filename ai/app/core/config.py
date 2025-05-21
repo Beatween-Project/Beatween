@@ -13,6 +13,10 @@ class Settings(BaseSettings):
 
     # OPENAI API 키
     OPENAI_API_KEY: str = ""
+
+    # GOOGLE 로그인 ID, PW
+    GOOGLE_ID: str = ""
+    GOOGLE_PW: str = ""
     
     class Config:
         env_file = ".env"

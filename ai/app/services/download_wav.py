@@ -1,9 +1,15 @@
 import os, re, json, glob, requests, mimetypes
 from pathlib import Path
 import yt_dlp
+from core.config import get_settings
+from yt_dlp.utils import DownloadError
 
 # 다양한 유튜브 URL 패턴을 지원하는 정규식
 _YT_ID_RE = re.compile(r'(?:v=|\/)([0-9A-Za-z_-]{11})')
+
+# 구글 아이디, 비밀번호 환경변수 불러오기
+YTDLP_USER = get_settings().GOOGLE_ID
+YTDLP_PASS = get_settings().GOOGLE_PW
 
 # YouTube ID 추출
 def extract_youtube_id(url: str) -> str | None:
@@ -105,6 +111,8 @@ def download_youtube_audio(youtube_url: str, storage_path: str) -> dict:
                 {"key": "FFmpegExtractAudio", "preferredcodec": "wav"},
             ],
             "quiet": True,
+            "username": YTDLP_USER,
+            "password": YTDLP_PASS,
         }
 
         # 1차 시도 – 오디오 + 제작자(수동) 자막
@@ -114,8 +122,24 @@ def download_youtube_audio(youtube_url: str, storage_path: str) -> dict:
             "writeautomaticsub": False,
             "writeinfojson": True,
         }
-        with yt_dlp.YoutubeDL(ydl_opts1) as ydl:
-            info = ydl.extract_info(youtube_url, download=True)
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts1) as ydl:
+                info = ydl.extract_info(youtube_url, download=True)
+        except DownloadError as e:
+            # 자막 블록 오류일 경우, 자동 자막으로만 재시도
+            err = str(e)
+            if "Did not get any data blocks" in err:
+                fallback_opts = ydl_common_opts | {
+                    "format": "bestaudio/best",
+                    "writesubtitles": False,
+                    "writeautomaticsub": True,
+                    "writeinfojson": True,
+                }
+                with yt_dlp.YoutubeDL(fallback_opts) as ydl:
+                    info = ydl.extract_info(youtube_url, download=True)
+            else:
+                # 자막 말고 다른 문제면 그대로 예외를 올려줌
+                raise
 
         # 자막 체크 → 없으면 2차로 자동 자막만 다운로드
         subtitle_files = glob.glob(file_base + "*.vtt")

@@ -68,13 +68,18 @@ def _prompt_with_vtt(song_title: str, duration_sec: int, vtt_content: str) -> Li
                 When given:
                 
                 1. An incomplete WEBVTT file (may contain partial timestamps and fragments)
-                2. The song title : {song_title}
-                3. The total duration of the song : {duration_sec}
+                2. The song title: {song_title}
+                3. The total duration of the song : {duration_sec} seconds
                 
                 Your task:
                 
-                * Fetch any missing lyric lines from the official lyrics.
-                * Re-segment the lyrics into 2–5 second intervals starting at 00:00.000.
+                * Fetch the full official lyrics of {song_title} from the internet, and fill any missing lines.
+                * Do not introduce duplicates (e.g., wrong: “가로등 불빛 아래 그 가로등 불빛 아래 그 골목길”; correct: “가로등 불빛 아래 그 골목길”)
+                * Please consolidate any excessive duplicates into a single entry.
+                * If the existing lyrics in the VTT are already completely accurate, leave them unchanged.
+                * Please consolidate any excessive duplicates into a single entry:
+                    - If the same lyric line appears in multiple consecutive or non-consecutive blocks, remove all but one occurrence.
+                    - If those duplicate blocks have different timestamps, merge them into one block spanning from the earliest start time to the latest end time.
                 * Produce a complete WEBVTT file spanning the entire song.
                 * Return ONLY the finished WEBVTT string (no extra explanation).
                 
@@ -101,11 +106,13 @@ def _prompt_with_vtt(song_title: str, duration_sec: int, vtt_content: str) -> Li
                 남몰래 주고 받았었던 쪽지
                 ```
                 
-                변환 결과
+                변환 결과 (중복 제거)
                 ```
                 00:00:13.000 --> 00:00:17.230
                 가로등 불빛 아래 그 골목길
                 ```
+                
+                Warning: Do not change the timestamps if you are not modifying the content.
 
                 """
             ),
@@ -185,10 +192,15 @@ def update_lyrics_vtt(
     # ── 1) 사용할 VTT 선택 ───────────────────────
     song_lang = _detect_song_lang(song_title)
     selected: Optional[Path] = None
+    priority_languages = ["ko", "en"]
 
-    for p in vtt_paths:
-        if _lang_of(Path(p)) == song_lang:
-            selected = Path(p)
+    # 언어 우선순위에 따라 선택
+    for lang in priority_languages:
+        for p in vtt_paths:
+            if _lang_of(Path(p)) == lang:
+                selected = Path(p)
+                break
+        if selected:
             break
     if selected is None and vtt_paths:
         selected = Path(vtt_paths[0])          # 언어 안 맞으면 첫 번째
