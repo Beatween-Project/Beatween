@@ -11,7 +11,7 @@ export const ButtonBox = ({
 }: ButtonBoxProps) => {
   return (
     <button
-      className={`bg-neutral100 border-2 border-neutral200 rounded-xl py-3 px-5 ${className}`}
+      className={`hover:bg-neutral200 transition-all duration-3000 bg-neutral100 border-2 border-neutral200 rounded-xl py-3 px-5 ${className}`}
       {...props}
     >
       {children}

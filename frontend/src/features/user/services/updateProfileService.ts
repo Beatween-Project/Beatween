@@ -3,7 +3,7 @@ import { ResponseDto } from "@/shared/types/Response.types";
 
 export const updateProfile = async (
   formData: FormData
-): Promise<ResponseDto<null>> => {
+): Promise<ResponseDto<string>> => {
   try {
     return await updateProfileApi(formData);
   } catch (err) {

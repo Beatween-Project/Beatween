@@ -9,7 +9,7 @@ interface LineBasicProps {
   mode?: "view" | "create";
   onCreate?: (value: string) => void;
   onCreateCancel?: () => void;
-  onUpdate?: (value: string) => void;
+  onUpdate?: (value: string, onSuccess: () => void) => void;
   onDelete?: () => void;
 }
 
@@ -70,8 +70,12 @@ export const LineBasic = ({
                 fill
                 color="green"
                 onClick={() => {
-                  if (onUpdate) onUpdate(text);
-                  setIsEditing(false);
+                  if (onUpdate) {
+                    onUpdate(text, () => {
+                      setIsEditing(false);
+                      setOriginalText(text);
+                    });
+                  }
                 }}
               >
                 저장

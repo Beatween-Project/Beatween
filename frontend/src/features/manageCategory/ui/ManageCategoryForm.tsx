@@ -43,6 +43,14 @@ export const ManageCategoryForm = forwardRef<
       return;
     }
 
+    if (name.trim() === "기본") {
+      toast.warning({
+        title: "사용 불가 이름",
+        message: "'기본'은 사용할 수 없는 이름입니다.",
+      });
+      return;
+    }
+
     createCategory(name, {
       onSuccess: () => {
         toast.success({
@@ -65,6 +73,14 @@ export const ManageCategoryForm = forwardRef<
       toast.warning({
         title: "입력 내용 없음",
         message: "최소 1자 이상 작성해주세요.",
+      });
+      return;
+    }
+
+    if (name.trim() === "기본") {
+      toast.warning({
+        title: "사용 불가 이름",
+        message: "'기본'은 사용할 수 없는 이름입니다.",
       });
       return;
     }
@@ -115,7 +131,7 @@ export const ManageCategoryForm = forwardRef<
         <LineBasic
           key={category.categoryId}
           text={category.name}
-          editable
+          editable={category.name !== "기본"}
           onUpdate={(name) => handleUpdate(category.categoryId, name)}
           onDelete={() => handleDelete(category.categoryId)}
         />

@@ -2,7 +2,7 @@ export interface SpacePreDto {
   space_id: number;
   space_name: string;
   img_url: string;
-  space_type: "PERSONAL" | "TEAM";
+  space_type: SpaceType;
 }
 
 export interface SpaceDetailDto {
@@ -10,10 +10,10 @@ export interface SpaceDetailDto {
   spaceName: string;
   description: string;
   imageUrl: string | null;
-  spaceType: "PERSONAL" | "TEAM";
+  spaceType: SpaceType;
   createAt: string;
   updateAt: string | null;
-  roleType: "OWNER" | "MEMBER";
+  roleType: RoleType;
   members: MemberDto[];
 }
 
@@ -21,3 +21,7 @@ export interface MemberDto {
   nickName: string;
   profileImageUrl: string;
 }
+
+export type SpaceType = "PERSONAL" | "TEAM";
+
+export type RoleType = "OWNER" | "MEMBER";

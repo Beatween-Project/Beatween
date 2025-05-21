@@ -1,8 +1,8 @@
 import { openModal } from "@/shared/lib/modal";
 import { ButtonBox } from "@/shared/ui/Button";
-import { useUpdateProfile } from "../hooks/useUpdateProfile";
-import { UpdateProfileForm, UpdateProfileRef } from "./UpdateProfileForm";
 import { useRef } from "react";
+import { useUpdateProfile } from "@/features/user/hooks/useUpdateProfile";
+import { UpdateProfileForm, UpdateProfileRef } from "./UpdateProfileForm";
 
 export const UpdateProfileButton = () => {
   const updateMutation = useUpdateProfile();
@@ -10,6 +10,7 @@ export const UpdateProfileButton = () => {
 
   const handleConfirm = () => {
     const formData = updateProfileFormRef.current?.getFormData();
+    console.log(formData);
     if (!formData) return;
 
     updateMutation.mutate(formData);

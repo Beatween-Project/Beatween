@@ -57,7 +57,7 @@ export const Tooltip = ({
       data-tooltip-html={tooltipContent}
       data-tooltip-place={direction}
       data-tooltip-class-name="max-w-[10rem]"
-      className={`custom-tooltip ${className}`}
+      className={`custom-tooltip z-30 ${className}`}
       onClick={onClick}
     >
       {children}

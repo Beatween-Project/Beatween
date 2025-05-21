@@ -6,6 +6,8 @@ export const PersonalSpacePage = () => {
     (state) => state.personalSpaceId
   );
 
+  if (!personalSpaceId) return <div>Now Loading...</div>;
+
   return (
     <SpaceContentLayout teamId={Number(personalSpaceId)} type="personal" />
   );

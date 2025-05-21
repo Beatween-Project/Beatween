@@ -1,13 +1,21 @@
 import { useGlobalStore } from "@/app/store/globalStore";
-import { UpdateProfileForm, UpdateProfileRef } from "@/features/updateProfile/ui/UpdateProfileForm";
-import { useUpdateProfile } from "@/features/updateProfile/hooks/useUpdateProfile";
+import {
+  UpdateProfileForm,
+  UpdateProfileRef,
+} from "@/features/user/ui/UpdateProfileForm";
 import { openConfirm, openModal } from "@/shared/lib/modal";
 import { toast } from "@/shared/lib/toast";
 import { ButtonBox } from "@/shared/ui/Button";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
+import { useUpdateProfile } from "../../hooks/useUpdateProfile";
+import { Icon } from "@/shared/ui/Icon";
 
-export const UserSettingModal = () => {
+interface UserSettingModalProps {
+  name?: string;
+}
+
+export const UserSettingModal = ({ name }: UserSettingModalProps) => {
   const navigate = useNavigate();
   const { logout } = useGlobalStore();
   const updateProfileFormRef = useRef<UpdateProfileRef>(null);
@@ -34,9 +42,11 @@ export const UserSettingModal = () => {
           })
         }
       >
-        <div className="font-medium">성이름</div>
-        <div className="text-neutral500 font-light text-sm">
-          email@email.com
+        <div className="flex flex-wrap justify-between items-center">
+          <div className="font-medium">{name}</div>
+          <div className="flex text-neutral600">
+            <Icon icon="arrow_forward_ios" size={16} />
+          </div>
         </div>
       </ButtonBox>
 
