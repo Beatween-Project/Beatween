@@ -9,6 +9,7 @@ import { openModal, closeModal } from "@/shared/lib/modal";
 import { useGlobalStore } from "@/app/store/globalStore";
 import { useScoreStore } from "@/features/score/model/useScoreStore";
 import { AxiosError } from "axios";
+import { useInstrumentStore } from "@/features/instrument/model/useInstrumentStore";
 
 interface ScoreSelectModalProps {
   spaceId: string;
@@ -22,12 +23,11 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
   const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
 
   const setHasSelectedSong = useGlobalStore((s) => s.setHasSelectedSong);
-  const userId = useGlobalStore((s) => s.clientId);
   const isManager = useGlobalStore((s) => s.isManager);
 
   const setSelectedSheets = useScoreStore((s) => s.setSelectedSheets);
-  // 새로 추가: setParts 함수 가져오기
   const setParts = useScoreStore((s) => s.setParts);
+  const setInstrument = useInstrumentStore((s) => s.setInstrument);
 
   useEffect(() => {
     async function fetchData() {
@@ -36,19 +36,16 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
         setCategories(data);
         console.log("📥 악보 목록 로드 완료:", data);
 
-        // 추가 디버깅: 카테고리 데이터 더 자세히 로그
-        if (data && data.length > 0) {
-          console.log("🔍 첫 번째 카테고리:", data[0]);
-          if (data[0].songs && data[0].songs.length > 0) {
-            console.log("🔍 첫 번째 곡:", data[0].songs[0]);
-            if (data[0].songs[0].sheets) {
-              console.log("🔍 첫 번째 곡의 sheets:", data[0].songs[0].sheets);
-              // sheets의 part 정보 확인
-              const parts = data[0].songs[0].sheets.map((sheet) => sheet.part);
-              console.log("🔍 첫 번째 곡에서 추출한 파트들:", parts);
-            }
-          }
-        }
+        data.forEach((category, idx) => {
+          console.log(
+            `📂 카테고리[${idx}] - ${category.categoryName}:`,
+            category
+          );
+          category.songs.forEach((song, sidx) => {
+            console.log(`🎵 곡[${sidx}] - ${song.title}:`, song);
+            console.log(`🎼 시트들:`, song.sheets);
+          });
+        });
       } catch (e) {
         console.error("❌ 악보 목록 불러오기 실패:", e);
       }
@@ -76,49 +73,19 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
         if (!selectedSongId) return;
 
         try {
-          await selectSong(spaceId, userId, selectedSongId);
+          await selectSong(spaceId, selectedSongId);
 
           const selectedSong = categories
             .flatMap((cat) => cat.songs)
             .find((song) => song.copySongId === selectedSongId);
 
           if (selectedSong && selectedSong.sheets) {
-            // sheets 배열 확인
             const sheets = selectedSong.sheets;
-
-            // 각 sheet 객체의 구조 확인
-            if (sheets.length > 0) {
-            }
-
-            // 파트 추출 - sheets 배열의 각 항목에서 part 속성 추출
             const parts = sheets.map((sheet) => sheet.part);
-            console.log("🔍 추출된 파트 배열:", parts);
 
-            // 상태 업데이트 전 확인
-            console.log("🔍 상태 업데이트 전 store:", {
-              sheets: useScoreStore.getState().selectedSheets,
-              parts: useScoreStore.getState().parts,
-            });
-
-            // 상태 업데이트
             setSelectedSheets(sheets);
             setParts(parts);
-
-            // 상태 업데이트 직후 확인
-            console.log("🔍 상태 업데이트 직후 store:", {
-              sheets: useScoreStore.getState().selectedSheets,
-              parts: useScoreStore.getState().parts,
-            });
-
-            // 1초 후 상태 다시 확인
-            setTimeout(() => {
-              const storeState = useScoreStore.getState();
-              console.log("🕒 1초 후 store의 상태:", {
-                sheets: storeState.selectedSheets,
-                parts: storeState.parts,
-              });
-            }, 1000);
-
+            setInstrument(parts[0]);
             setHasSelectedSong(true);
             closeModal();
             console.log("✅ 곡 선택 성공, 파트 정보:", parts);
@@ -137,7 +104,6 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
       },
       children: (
         <div className="space-y-4">
-          {/* 카테고리 선택 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               카테고리
@@ -160,7 +126,6 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
             </select>
           </div>
 
-          {/* 곡 선택 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               곡
@@ -193,11 +158,11 @@ export default function ScoreSelectModal({ spaceId }: ScoreSelectModalProps) {
     selectedCategoryId,
     selectedSongId,
     spaceId,
-    userId,
     isManager,
     setSelectedSheets,
-    setParts, // 새로 추가: 의존성 배열에 setParts 추가
+    setParts,
     setHasSelectedSong,
+    setInstrument,
   ]);
 
   return null;

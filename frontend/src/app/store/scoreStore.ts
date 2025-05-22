@@ -16,6 +16,10 @@ interface ScoreState {
   selectedPartSheetUrl: string | null;
   setSelectedSheets: (sheets: Sheet[]) => void;
   setSelectedPartSheetUrl: (url: string) => void;
+  selectedSheetUrl: string | null;
+  setSelectedSheetUrl: (url: string) => void;
+  copySongId: number | null;
+  setCopySongId: (id: number) => void;
 }
 
 export const useScoreStore = create<ScoreState>((set) => ({
@@ -33,4 +37,8 @@ export const useScoreStore = create<ScoreState>((set) => ({
   selectedPartSheetUrl: null,
   setSelectedSheets: (sheets) => set({ selectedSheets: sheets }),
   setSelectedPartSheetUrl: (url) => set({ selectedPartSheetUrl: url }),
+  selectedSheetUrl: null,
+  setSelectedSheetUrl: (url) => set({ selectedSheetUrl: url }),
+  copySongId: null,
+  setCopySongId: (id) => set({ copySongId: id }),
 }));
