@@ -1,0 +1,43 @@
+/*
+https://fonts.cafe24.com
+
+Cafe24 Classictype License
+
+“카페24 클래식타입”의 지적 재산권은 카페24(주)에 있습니다.
+
+카페24(주)에서 제공하는 “카페24 클래식타입”은 SIL OPEN FONT LICENSE(Version 1.1)에 따라 사용이 허가됩니다.
+
+“카페24 클래식타입”은 개인 및 기업 사용자를 포함한 모든 사용자에게 무료로 제공되며 자유롭게 수정하고 재배포할 수 있습니다.
+
+단, 글꼴 자체를 유료로 판매하는 것은 금지하며 본 저작권 안내와 라이선스 전문을 포함해서 다른 소프트웨어와 번들하거나 재배포 또는 판매가 가능합니다.
+라이선스 전문을 포함하기 어려울 경우, 출처 표기를 권장합니다.
+예) 이 페이지에는 카페24(주)이 제공한 “카페24 클래식타입”이 적용되어 있습니다
+
+“카페24 클래식타입”이 사용된 인쇄물, 광고물(온라인 포함)의 이미지는 카페24의 프로모션을 위해 활용될 수 있습니다.
+이를 원치 않는 사용자는 언제든지 당사에 요청하실 수 있습니다
+*/
+@font-face {
+  font-family: "Cafe24ClassicType-Regular";
+  src: url("../assets/fonts/Cafe24Classictype-v1.1.woff2") format("woff2"),
+    url("../assets/fonts/Cafe24Classictype-v1.1.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/*
+Copyright (c) 2021 Kil Hyung-jin, with Reserved Font Name Pretendard.
+https://github.com/orioncactus/pretendard
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+*/
+
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/PretendardVariable.woff2")
+    format("woff2-variations");
+}

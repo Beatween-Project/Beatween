@@ -1,0 +1,1 @@
+export { LayoutShrink } from "./LayoutShrink";
