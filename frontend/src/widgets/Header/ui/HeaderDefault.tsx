@@ -71,7 +71,9 @@ export const HeaderDefault = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Button onClick={onShrink}>로그인/회원가입하러 가기</Button>
+            <Button onClick={onShrink} color="green" icon="login">
+              로그인/회원가입하러 가기
+            </Button>
           </motion.div>
         ) : null}
       </div>
