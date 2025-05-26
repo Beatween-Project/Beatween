@@ -16,9 +16,16 @@ import com.a205.beatween.domain.song.repository.OriginalSheetRepository;
 import com.a205.beatween.domain.song.repository.OriginalSongRepository;
 import com.a205.beatween.domain.space.entity.Category;
 import com.a205.beatween.domain.space.entity.Space;
+import com.a205.beatween.domain.space.entity.UserSpace;
 import com.a205.beatween.domain.space.repository.CategoryRepository;
 import com.a205.beatween.domain.space.repository.SpaceRepository;
 import com.a205.beatween.domain.space.repository.UserSpaceRepository;
+import com.a205.beatween.domain.user.entity.Notification;
+import com.a205.beatween.domain.user.entity.User;
+import com.a205.beatween.domain.user.entity.UserNotification;
+import com.a205.beatween.domain.user.repository.NotificationRepository;
+import com.a205.beatween.domain.user.repository.UserNotificationRepository;
+import com.a205.beatween.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
@@ -48,6 +55,9 @@ public class SongService {
     private final SseEmitters sseEmitters;
     private final DrawingRepository drawingRepository;
     private final UserSpaceRepository userSpaceRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final UserNotificationRepository userNotificationRepository;
 
 
     public Result<CopySheetResponseDto> getCopySheet(Integer userId, Integer spaceId, Integer songId, Integer categoryId, Integer sheetId){
@@ -85,6 +95,8 @@ public class SongService {
         eventData.put("message", "악보 생성을 시작합니다.");
         sseEmitters.send(userId, spaceId, "process", eventData);
 
+        User user = userRepository.getReferenceById(userId);
+        Space space = spaceRepository.getReferenceById(spaceId);
         String[][] parts = new String[4][2];
         parts[0][0] = "drum";
         parts[1][0] = "guitar";
@@ -111,6 +123,26 @@ public class SongService {
             // 작업 완료 이벤트 전송;
             eventData.put("message", "악보 생성 완료");
             sseEmitters.send(userId, spaceId, "complete", eventData);
+            Notification notification = Notification
+                    .builder()
+                    .type("create_sheet")
+                    .space(space)
+                    .content(user.getNickname()+"님이 ["+checkSong.getTitle()+"]곡을 생성하였습니다.")
+                    .build();
+            notification = notificationRepository.save(notification);
+
+            List<UserSpace> userSpaceList = userSpaceRepository.findBySpace(space);
+
+            for(UserSpace userSpace : userSpaceList) {
+                UserNotification userNotification = UserNotification
+                        .builder()
+                        .user(userSpace.getUser())
+                        .notification(notification)
+                        .isRead(false)
+                        .build();
+                userNotificationRepository.save(userNotification);
+            }
+
             sseEmitters.remove(userId, spaceId);
             return;
         }
@@ -143,6 +175,25 @@ public class SongService {
                                 // 최종 완료 이벤트와 함께 결과 데이터 전송
                                 eventData.put("message", "악보 생성 완료");
                                 sseEmitters.send(userId, spaceId, "complete", eventData);
+                                Notification notification = Notification
+                                        .builder()
+                                        .type("create_sheet")
+                                        .space(space)
+                                        .content(user.getNickname()+"님이 ["+originalSong.getTitle()+"]곡을 생성하였습니다.")
+                                        .build();
+                                notification = notificationRepository.save(notification);
+
+                                List<UserSpace> userSpaceList = userSpaceRepository.findBySpace(space);
+
+                                for(UserSpace userSpace : userSpaceList) {
+                                    UserNotification userNotification = UserNotification
+                                            .builder()
+                                            .user(userSpace.getUser())
+                                            .notification(notification)
+                                            .isRead(false)
+                                            .build();
+                                    userNotificationRepository.save(userNotification);
+                                }
                                 sseEmitters.remove(userId, spaceId);
                             } catch (Exception e) {
                                 eventData.put("message", "악보 처리 중 오류 발생");
