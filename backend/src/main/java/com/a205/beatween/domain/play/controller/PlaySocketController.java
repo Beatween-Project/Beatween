@@ -2,12 +2,11 @@ package com.a205.beatween.domain.play.controller;
 
 import com.a205.beatween.common.reponse.ResponseDto;
 import com.a205.beatween.common.reponse.Result;
-import com.a205.beatween.domain.play.dto.PlayControlMessage;
 import com.a205.beatween.domain.play.service.PlayService;
 import com.a205.beatween.domain.space.service.SpaceService;
+import com.a205.beatween.domain.play.dto.message.PlayControlMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;

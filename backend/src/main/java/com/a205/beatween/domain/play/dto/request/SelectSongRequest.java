@@ -1,4 +1,4 @@
-package com.a205.beatween.domain.play.dto;
+package com.a205.beatween.domain.play.dto.request;
 
 import lombok.*;
 

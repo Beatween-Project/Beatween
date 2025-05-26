@@ -1,4 +1,4 @@
-package com.a205.beatween.domain.play.dto;
+package com.a205.beatween.domain.play.dto.response;
 
 import com.a205.beatween.domain.drawing.dto.DrawingPoint;
 import lombok.AllArgsConstructor;

@@ -1,11 +1,8 @@
-package com.a205.beatween.domain.play.dto;
+package com.a205.beatween.domain.play.dto.message;
 
 import com.a205.beatween.domain.play.enums.PlayStatus;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-
-import java.util.Map;
 
 @Getter
 @Setter
