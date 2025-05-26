@@ -120,7 +120,7 @@ async def process_youtube(req: YoutubeRequest):
         if thumbnail_path:
             thumb_key = f"thumbnails/{uniq_name}{Path(thumbnail_path).suffix}"
             thumbnail_url = us3.upload_file(thumbnail_path, thumb_key)
-            print(f"썸네이리 업로드 완료 : {thumbnail_url}")
+            print(f"썸네일 업로드 완료 : {thumbnail_url}")
         else:
             thumbnail_url = None
         print("S3 업로드 완료")

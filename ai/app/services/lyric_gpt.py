@@ -141,7 +141,7 @@ def _prompt_no_vtt(song_title: str, duration_sec: int) -> List[Dict[str, str]]:
                 WEBVTT
                 Kind: captions
                 Language: ko
-                
+  
                 00:00:00.000 --> 00:00:10.000
                 가사 생성 불가
                 ```

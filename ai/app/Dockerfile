@@ -22,8 +22,9 @@ RUN apt-get update && \
       libatomic1 && \
     rm -rf /var/lib/apt/lists/*
 
-# 3) pip 업그레이드 (선택)
-RUN pip3 install --upgrade pip
+# 3) pip 업그레이드
+RUN pip3 install --upgrade pip \
+    && pip3 install --no-cache-dir --upgrade yt-dlp
 
 # 작업 디렉터리 설정
 WORKDIR /app
