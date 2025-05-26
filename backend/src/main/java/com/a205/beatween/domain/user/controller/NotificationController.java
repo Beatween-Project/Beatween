@@ -2,6 +2,7 @@ package com.a205.beatween.domain.user.controller;
 
 import com.a205.beatween.common.jwt.JwtUtil;
 import com.a205.beatween.common.reponse.ResponseDto;
+import com.a205.beatween.domain.user.dto.NotificationDto;
 import com.a205.beatween.domain.user.entity.Notification;
 import com.a205.beatween.domain.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String token
     ) {
         Integer userId = jwtUtil.extractUserId(token);
-        List<Notification> notificationList = notificationService.getNotifications(userId);
+        List<NotificationDto> notificationList = notificationService.getNotifications(userId);
         ResponseDto<Object> result = ResponseDto
                 .builder()
                 .success(true)

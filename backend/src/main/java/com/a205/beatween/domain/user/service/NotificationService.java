@@ -1,5 +1,6 @@
 package com.a205.beatween.domain.user.service;
 
+import com.a205.beatween.domain.user.dto.NotificationDto;
 import com.a205.beatween.domain.user.entity.Notification;
 import com.a205.beatween.domain.user.entity.UserNotification;
 import com.a205.beatween.domain.user.repository.NotificationRepository;
@@ -16,7 +17,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserNotificationRepository userNotificationRepository;
 
-    public List<Notification> getNotifications(Integer userId) {
+    public List<NotificationDto> getNotifications(Integer userId) {
         return notificationRepository.findByUserId(userId);
     }
 

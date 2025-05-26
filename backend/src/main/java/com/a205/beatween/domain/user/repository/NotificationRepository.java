@@ -1,5 +1,6 @@
 package com.a205.beatween.domain.user.repository;
 
+import com.a205.beatween.domain.user.dto.NotificationDto;
 import com.a205.beatween.domain.user.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,8 +18,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
             "FROM Notification n " +
             "JOIN UserNotification un " +
             "ON n.notificationId = un.notification.notificationId " +
-            "WHERE un.user.userId =: userId " +
+            "WHERE un.user.userId =:userId " +
             "AND un.isRead = false " +
             "ORDER BY n.createdAt DESC ")
-    List<Notification> findByUserId(Integer userId);
+    List<NotificationDto> findByUserId(Integer userId);
 }
