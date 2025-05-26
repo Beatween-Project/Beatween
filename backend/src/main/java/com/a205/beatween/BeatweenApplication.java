@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.TimeZone;
 
 @SpringBootApplication
+@EnableScheduling
 public class BeatweenApplication {
 
 	public static void main(String[] args) {
