@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { Popover } from "@/shared/ui/Popover";
 import { useSheetStore } from "@/features/createSheet/store/useSheetStore";
 import { NotificationList } from "@/features/notification/ui/NotificationList";
+import { useNotificationList } from "@/features/notification/hooks/useNotificationList";
+import { LoadingIcon } from "@/shared/ui/Loading";
 
 interface HeaderDefaultProps extends HtmlHTMLAttributes<HTMLDivElement> {
   text?: String;
@@ -29,10 +31,14 @@ export const HeaderDefault = ({
   const isLoggedIn = useGlobalStore((state) => state.isLoggedIn);
   const isCreating = useSheetStore((state) => state.isCreating);
 
+  const { data, isLoading, error } = useNotificationList();
+  const notifications = data?.data ?? [];
+  const hasUnread = notifications.some((n) => !n.is_read);
+
   return (
     <header
       className={classNames(
-        "z-30 h-[3.525rem] w-full flex bg-neutral100/30 justify-between items-center px-6 py-2 border-b border-neutral100/30 b-blur",
+        "z-40 h-[3.525rem] w-full flex bg-neutral100/30 justify-between items-center px-6 py-2 border-b border-neutral100/30 b-blur",
         className
       )}
       {...props}
@@ -44,24 +50,38 @@ export const HeaderDefault = ({
       {isCreating && (
         <div className="text-brandcolor200 flex flex-wrap gap-2 items-center">
           악보를 생성중입니다...
-          <div className="flex animate-spin">
-            <Icon icon="progress_activity" />
-          </div>
+          <LoadingIcon />
         </div>
       )}
       <div>
         {isLoggedIn ? (
           <Popover
             directionY="bottom"
-            className={`translate-x-[.5rem] h-[16rem] flex flex-col pb-0 px-0`}
-            trigger={<IconButton icon="notifications" fill className="-mr-2" />}
+            className={`translate-x-[.5rem] max-h-[min(28rem,calc(100vh-4.525rem))] flex flex-col pb-0 px-0`}
+            trigger={
+              <div className="flex relative">
+                <IconButton icon="notifications" fill className="-mr-2" />
+                {hasUnread && (
+                  <span className="absolute top-0 right-0 translate-y-1 w-2 h-2 bg-red rounded-full" />
+                )}
+              </div>
+            }
           >
-            <div className="px-4 pb-3 pt-1 text-lg font-bold text-left border-b">
-              알림
-            </div>
-            <div className="p-3 flex flex-col gap-2 overflow-y-auto scroll-custom">
-              <NotificationList />
-            </div>
+            {(closePopover) => (
+              <>
+                <div className="px-4 pb-3 pt-1 text-lg font-bold text-left border-b">
+                  알림
+                </div>
+                <div className="p-5 bg-neutral200 flex flex-col gap-2 overflow-y-auto scroll-custom">
+                  <NotificationList
+                    notifications={notifications}
+                    isLoading={isLoading}
+                    error={error}
+                    closePopover={closePopover}
+                  />
+                </div>
+              </>
+            )}
           </Popover>
         ) : !isSignPage ? (
           <motion.div

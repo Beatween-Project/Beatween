@@ -21,7 +21,7 @@ export const LayoutDefault = ({
 
   return (
     <div
-      className={`relative h-full w-full ${
+      className={`relative h-full w-full scroll-custom ${
         noScroll ? "" : "overflow-y-auto overflow-x-auto"
       } ${bgClass}`}
     >

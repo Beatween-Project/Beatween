@@ -34,7 +34,7 @@ export const LayoutSwitcher = () => {
   }
 
   return (
-    <LayoutDefault bgColor="black" noScroll>
+    <LayoutDefault bgColor="black">
       <Outlet />
     </LayoutDefault>
   );

@@ -3,7 +3,7 @@ import { PanelModal } from "../Panel";
 
 interface PopoverProps {
   trigger: ReactNode;
-  children: ReactNode;
+  children: ReactNode | ((close: () => void) => ReactNode);
   directionY?: "top" | "bottom";
   className?: String;
 }
@@ -18,6 +18,7 @@ export const Popover = ({
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLDivElement | null>(null);
 
+  const closePopover = () => setIsOpen(false);
   const togglePopover = () => {
     setIsOpen(!isOpen);
   };
@@ -57,7 +58,9 @@ export const Popover = ({
                 : "bottom-0 right-0 translate-y-[calc(100%+.5rem)]"
             } ${className}`}
           >
-            {children}
+            {typeof children === "function"
+              ? (children as (close: () => void) => ReactNode)(closePopover)
+              : children}
           </PanelModal>
         </div>
       )}

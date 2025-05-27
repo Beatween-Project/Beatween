@@ -212,7 +212,7 @@ export const SpaceContentLayout = ({
         </div>
       </div>
 
-      <div className="w-full flex flex-wrap gap-3 px-6">
+      <div className="w-full flex flex-wrap gap-3 px-6 relative">
         <CreateSheetButton teamId={teamId} />
         {type === "team" && <PlaywithButton onClick={handlePlayWithClick} />}
       </div>

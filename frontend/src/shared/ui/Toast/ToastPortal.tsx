@@ -7,7 +7,7 @@ export const ToastPortal = () => {
   const toasts = useToastStore((state) => state.toasts);
 
   return createPortal(
-    <div className="fixed bottom-4 left-4 z-[100] space-y-2">
+    <div className="pointer-events-none fixed bottom-4 left-4 z-[100] space-y-2">
       <AnimatePresence>
         {toasts.map((toast) => (
           <ToastItem key={toast.id} {...toast} />

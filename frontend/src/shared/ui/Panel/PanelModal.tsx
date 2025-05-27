@@ -23,7 +23,9 @@ export function PanelModal({
   const bgClass = toneBgClasses[tone];
 
   return (
-    <div className={`${bgClass} rounded-xl b-blur ${className}`}>
+    <div
+      className={`${bgClass} rounded-xl overflow-hidden b-blur ${className}`}
+    >
       {children}
     </div>
   );
