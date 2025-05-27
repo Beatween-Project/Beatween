@@ -13,6 +13,8 @@ export const ButtonLocalLogin = ({
 
   return (
     <Button
+      icon="email"
+      fill
       color="green"
       className={`w-[18rem] max-w-full ${className}`}
       onClick={() => {
