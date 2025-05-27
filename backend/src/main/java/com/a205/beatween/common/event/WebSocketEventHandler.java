@@ -65,4 +65,23 @@ public class WebSocketEventHandler {
                     spaceId, userId, sessionId);
         }
     }
+
+    @EventListener
+    public void handleSessionDisconnect(org.springframework.web.socket.messaging.SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = accessor.getSessionId();
+        String userId = accessor.getUser() != null ? accessor.getUser().getName() : null;
+        String spaceId = accessor.getSessionAttributes() != null
+                ? (String) accessor.getSessionAttributes().get("spaceId")
+                : null;
+
+        log.warn("[SessionDisconnectEvent 감지] sessionId={}, userId={}, spaceId={}", sessionId, userId, spaceId);
+
+        if (sessionId != null && userId != null && spaceId != null) {
+            playService.handleManualDisconnect(spaceId, sessionId, userId);
+        } else {
+            log.warn("⚠세션 종료 정보 부족 - spaceId={}, userId={}, sessionId={}", spaceId, userId, sessionId);
+        }
+    }
+
 }
