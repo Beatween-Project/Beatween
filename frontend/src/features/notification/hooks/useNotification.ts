@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { subscribeSheetStatus } from "../services/NotificationService";
 
 export function useNotification(
@@ -12,16 +12,19 @@ export function useNotification(
     onComplete: (data: any) => void;
     onError: (data: any) => void;
   }
-): () => void {
+): { start: () => void; stop: () => void } {
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  useEffect(() => {
+  const stop = useCallback(() => {
+    eventSourceRef.current?.close();
+    eventSourceRef.current = null;
+  }, []);
+
+  const start = useCallback(() => {
+    stop(); // 기존 연결 닫기
+
     const eventSource = subscribeSheetStatus(spaceId);
     eventSourceRef.current = eventSource;
-
-    eventSource.addEventListener("connect", () => {
-      // console.log("SSE 연결됨:", event);
-    });
 
     eventSource.addEventListener("process", (event) => {
       const data = JSON.parse((event as MessageEvent).data);
@@ -31,21 +34,20 @@ export function useNotification(
     eventSource.addEventListener("complete", (event) => {
       const data = JSON.parse((event as MessageEvent).data);
       onComplete(data);
-      eventSource.close();
+      stop(); // 완료 시 연결 종료 (필요 시 유지 가능)
     });
 
     eventSource.addEventListener("error", (event) => {
       console.error("SSE 오류:", event);
       onError(event);
-      eventSource.close();
+      stop(); // 오류 시 연결 종료
     });
+  }, [spaceId, onProcess, onComplete, onError, stop]);
 
-    return () => {
-      eventSource.close();
-    };
-  }, [spaceId]);
+  // 컴포넌트가 사라질 때 연결 닫기
+  useEffect(() => {
+    return () => stop();
+  }, [stop]);
 
-  return () => {
-    eventSourceRef.current?.close();
-  };
+  return { start, stop };
 }
