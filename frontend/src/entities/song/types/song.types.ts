@@ -4,3 +4,9 @@ export interface Sheet {
   part: string;
   sheetUrl: string;
 }
+
+export interface SheetInfoResponse {
+  copySheetId: number;
+  part: string;
+  sheetUrl: string;
+}

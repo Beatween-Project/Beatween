@@ -15,6 +15,7 @@ import { RedirectSharePage } from "@/features/invite/ui/RedirectSharePage";
 import { LocalSignUpPage } from "@/features/auth/local/ui/LocalSignUpPage";
 import { LocalSignInPage } from "@/features/auth/local/ui/LocalSignInPage";
 import { ErrorPage } from "@/pages/Error";
+import { SongDetailPage } from "@/pages/SongDetail";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: "/song/:songId",
+    element: <SongDetailPage />,
   },
   {
     path: "/sign",

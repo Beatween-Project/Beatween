@@ -1,11 +1,14 @@
 import { useCopySong } from "@/entities/song/hooks/useCopySong";
 import { NoteItem } from "./NoteItem";
+import { useNavigate } from "react-router-dom";
 
 interface NoteListProps {
   teamId: number | undefined;
 }
 
 export const NoteList = ({ teamId }: NoteListProps) => {
+  const navigate = useNavigate();
+
   if (!teamId) {
     return <div>잘못된 팀 정보입니다.</div>;
   }
@@ -53,7 +56,12 @@ export const NoteList = ({ teamId }: NoteListProps) => {
               </div>
             ) : (
               data.copySongList.map((song) => (
-                <NoteItem key={song.song_id} song={song} teamId={teamId} />
+                <NoteItem
+                  key={song.song_id}
+                  song={song}
+                  teamId={teamId}
+                  onClick={() => navigate(`/song/${song.song_id}`)}
+                />
               ))
             )}
           </div>

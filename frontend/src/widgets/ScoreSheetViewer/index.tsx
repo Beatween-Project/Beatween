@@ -8,6 +8,8 @@ import { useGlobalStore } from "@/app/store/globalStore";
 import { useHeaderFooterStore } from "@/app/store/headerFooterStore";
 import { useSocketStore } from "@/app/store/socketStore";
 import CanvasOverlay from "@/features/draw/ui/CanvasOverlay"; // 드로잉 컴포넌트 경로 맞춰주세요
+import { Icon } from "@/shared/ui/Icon";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface ScoreSheetViewerProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -23,6 +25,7 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
   const stompClient = useSocketStore((s) => s.stompClient);
   const isSocketConnected = useSocketStore((s) => s.isConnected);
 
+  const { isLoading } = useVerovioLoader(containerRef);
   const [selectedColor, setSelectedColor] = useState("#000000");
 
   usePlaySync("1");
@@ -107,6 +110,23 @@ const ScoreSheetViewer: React.FC<ScoreSheetViewerProps> = ({
       >
         <div className="relative">
           <div className="h-[20px]" />
+          <AnimatePresence>
+            {isLoading && (
+              <motion.div
+                className="fixed inset-0 flex flex-col items-center justify-center bg-neutral1000/70 text-brandcolor200"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex animate-spin">
+                  <Icon icon="progress_activity" />
+                </div>
+                <div>악보 불러오는 중</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div id="verovio-container" />
 
           {isDrawing && (

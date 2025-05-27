@@ -8,16 +8,20 @@ import { useSongVersionStore } from "@/entities/song/store/songVersionStore";
 interface NoteItemProps {
   song?: CopySongDto;
   teamId: number;
+  onClick?: () => void;
 }
 
-export const NoteItem = ({ song, teamId }: NoteItemProps) => {
+export const NoteItem = ({ song, teamId, onClick }: NoteItemProps) => {
   const [imageError, setImageError] = useState(false);
   const version = song?.song_id
     ? useSongVersionStore((s) => s.versionMap[song.song_id] ?? 0)
     : 0;
 
   return (
-    <div className="p-3 pb-2 hover:scale-[104%] transition-all duration-300 rounded-lg flex flex-col gap-2 cursor-pointer">
+    <div
+      onClick={onClick}
+      className="p-3 pb-2 hover:scale-[104%] transition-all duration-300 rounded-lg flex flex-col gap-2 cursor-pointer"
+    >
       {/* image */}
       <div className="w-[12rem] h-[12rem] rounded-lg overflow-hidden">
         {!song?.thumbnail_url ? (
