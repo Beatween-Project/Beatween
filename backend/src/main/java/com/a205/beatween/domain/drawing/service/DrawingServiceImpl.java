@@ -196,13 +196,17 @@ public class DrawingServiceImpl implements DrawingService {
             int copySheetId = entry.getKey();
             List<DrawingPoint> points = entry.getValue();
 
+            // 존재하는 악보인지 확인
             CopySheet copySheet = copySheetRepository.findById(copySheetId).orElse(null);
             if (copySheet == null) {
-                return Result.error(404, "copySheetId %d에 해당하는 악보를 찾을 수 없습니다.".formatted(copySheetId));
+                log.warn("[DRAWING][개인연습] 저장 요청에 포함된 copySheetId {}는 DB에 존재하지 않아 무시되었습니다.", copySheetId);
+                continue;
             }
 
+            // 기존 드로잉 삭제
             drawingRepository.deleteByCopySheet_CopySheetId(copySheetId);
 
+            // 새 드로잉 저장
             List<Drawing> drawings = points.stream()
                     .map(p -> Drawing.builder()
                             .copySheet(copySheet)
@@ -218,6 +222,7 @@ public class DrawingServiceImpl implements DrawingService {
 
         return Result.success(null);
     }
+
 
 
     private void putAllToMap(Map<String, DrawingPoint> target, List<DrawingPoint> source) {

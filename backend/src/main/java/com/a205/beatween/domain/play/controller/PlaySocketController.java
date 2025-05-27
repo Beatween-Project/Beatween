@@ -75,13 +75,18 @@ public class PlaySocketController {
     @MessageMapping("/disconnect")
     public void manualDisconnect(StompHeaderAccessor accessor, Principal principal) {
         String sessionId = accessor.getSessionId();
-        String userId = principal.getName();
-        String spaceId = (String) accessor.getSessionAttributes().get("spaceId");
+        String userId = principal != null ? principal.getName() : "null";
+        String spaceId = accessor.getSessionAttributes() != null
+                ? (String) accessor.getSessionAttributes().get("spaceId")
+                : "null";
 
-        if (spaceId == null || userId == null || sessionId == null) {
-            log.warn("disconnect 정보 부족 - spaceId={}, userId={}, sessionId={}", spaceId, userId, sessionId);
+        log.warn("🟡 [disconnect 요청 수신] sessionId={}, userId={}, spaceId={}", sessionId, userId, spaceId);
+
+        if ("null".equals(spaceId) || "null".equals(userId) || sessionId == null) {
+            log.warn("🔴 disconnect 정보 부족 - spaceId={}, userId={}, sessionId={}", spaceId, userId, sessionId);
             return;
         }
+
         playService.handleManualDisconnect(spaceId, sessionId, userId);
     }
 
