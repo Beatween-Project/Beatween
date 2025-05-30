@@ -12,7 +12,6 @@ import { NoteList } from "./ui/NoteList";
 import { CreateSheetButton } from "@/features/createSheet/ui/CreateSheetButton";
 import { useSpaceDetail } from "@/entities/band/hooks/useSpace";
 import { ManageCategoryButton } from "@/features/manageCategory/ui/ManageCategoryButton";
-import { useUserImageVersionStore } from "@/entities/user/store/userVersionStore";
 import { useRef } from "react";
 import { BandFormHandle } from "@/entities/band/ui/BandForm";
 import { useUpdateBand } from "@/features/updateBand/hooks/useUpdateBand";
@@ -41,7 +40,6 @@ export const SpaceContentLayout = ({
   const { mutate: updateBandMutate } = useUpdateBand(Number(teamId));
   const navigate = useNavigate();
   const setStompClient = useSocketStore((state) => state.setStompClient);
-  const versionUser = useUserImageVersionStore((state) => state.version);
   const versionSpace = useSpaceVersionStore((state) =>
     state.getVersion(teamId)
   );
@@ -189,7 +187,9 @@ export const SpaceContentLayout = ({
                   key={idx}
                   imageUrl={
                     member.profileImageUrl
-                      ? `${member.profileImageUrl}?v=${versionUser}`
+                      ? `${member.profileImageUrl}${
+                          member.updateAt ? `?v=${member.updateAt}` : ""
+                        }`
                       : undefined
                   }
                   alt={member.nickName}

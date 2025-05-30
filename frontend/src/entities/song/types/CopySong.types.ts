@@ -3,6 +3,7 @@ export interface CopySongDto {
   category_id: number;
   title: string;
   thumbnail_url: string;
+  updated_at: string;
 }
 
 export interface CopySongListByCategoryDto {

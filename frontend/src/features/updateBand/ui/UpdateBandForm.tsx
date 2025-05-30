@@ -45,7 +45,13 @@ export const UpdateBandForm = forwardRef<BandFormHandle, UpdateBandFormProps>(
                 {spaceDetail?.members?.map((member) => (
                   <ImageCircle
                     key={crypto.randomUUID()}
-                    imageUrl={member.profileImageUrl}
+                    imageUrl={
+                      member.profileImageUrl
+                        ? `${member.profileImageUrl}${
+                            member.updateAt ? `?v=${member.updateAt}` : ""
+                          }`
+                        : undefined
+                    }
                   />
                 ))}
               </div>

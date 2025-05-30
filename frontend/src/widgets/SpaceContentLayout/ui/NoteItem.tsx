@@ -3,7 +3,6 @@ import { Popover } from "@/shared/ui/Popover";
 import { NotePopover } from "./NotePopover";
 import { CopySongDto } from "@/entities/song/types/CopySong.types";
 import { useState } from "react";
-import { useSongVersionStore } from "@/entities/song/store/songVersionStore";
 
 interface NoteItemProps {
   song?: CopySongDto;
@@ -13,9 +12,6 @@ interface NoteItemProps {
 
 export const NoteItem = ({ song, teamId, onClick }: NoteItemProps) => {
   const [imageError, setImageError] = useState(false);
-  const version = song?.song_id
-    ? useSongVersionStore((s) => s.versionMap[song.song_id] ?? 0)
-    : 0;
 
   return (
     <div
@@ -35,7 +31,9 @@ export const NoteItem = ({ song, teamId, onClick }: NoteItemProps) => {
           </div>
         ) : (
           <img
-            src={`${song.thumbnail_url}?t=${version}`}
+            src={`${song.thumbnail_url}${
+              song.updated_at ? `?v=${song.updated_at}` : ""
+            }`}
             alt={`${song.title} image`}
             onError={() => setImageError(true)}
             className="w-full h-full object-cover"

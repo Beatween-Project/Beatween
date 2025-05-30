@@ -20,6 +20,7 @@ export interface SpaceDetailDto {
 export interface MemberDto {
   nickName: string;
   profileImageUrl: string;
+  updateAt: string;
 }
 
 export type SpaceType = "PERSONAL" | "TEAM";
