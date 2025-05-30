@@ -16,7 +16,7 @@ export const NoteItem = ({ song, teamId, onClick }: NoteItemProps) => {
   return (
     <div
       onClick={onClick}
-      className="p-3 pb-2 hover:scale-[104%] transition-all duration-300 rounded-lg flex flex-col gap-2 cursor-pointer"
+      className="w-[13.5rem] p-3 pb-2 hover:scale-[104%] transition-all duration-300 rounded-lg flex flex-col gap-2 cursor-pointer"
     >
       {/* image */}
       <div className="w-[12rem] h-[12rem] rounded-lg overflow-hidden">
@@ -41,7 +41,9 @@ export const NoteItem = ({ song, teamId, onClick }: NoteItemProps) => {
         )}
       </div>
       <div className="w-full flex flex-wrap items-center justify-between px-1">
-        <div className="text-lg">{song?.title}</div>
+        <div className="line-clamp-2 text-lg text-left w-[calc(100%-40px)]">
+          {song?.title}
+        </div>
         <Popover trigger={<IconButton icon="more_horiz" />}>
           <NotePopover spaceId={teamId} song={song} />
         </Popover>

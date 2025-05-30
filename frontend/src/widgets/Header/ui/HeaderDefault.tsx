@@ -1,5 +1,5 @@
 import { useGlobalStore } from "@/app/store/globalStore";
-import { Icon, IconButton } from "@/shared/ui/Icon";
+import { IconButton } from "@/shared/ui/Icon";
 import { Button } from "@/shared/ui/Button";
 import { Logo } from "@/shared/ui/Logo";
 import classNames from "classnames";
