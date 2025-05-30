@@ -5,16 +5,23 @@ import { Result } from "@/shared/types/Response.types";
 import { toast } from "@/shared/lib/toast";
 import { useGlobalStore } from "@/app/store/globalStore";
 
+type LoginMutationPayload = {
+  loginDto: LoginDto;
+  slug?: string;
+  shareKey?: string;
+};
+
 export const useLogin = () => {
   const login = useGlobalStore((state) => state.login);
 
   return useMutation({
-    mutationFn: (data: LoginDto) => loginService(data),
-    onSuccess: (data: Result<{ token: string }>) => {
+    mutationFn: ({ loginDto }: LoginMutationPayload) => loginService(loginDto),
+    onSuccess: (data: Result<{ token: string }>, variables) => {
       if (data.success) {
+        const { slug, shareKey } = variables;
         const token = data.data?.token;
         if (token) {
-          login(token);
+          login(token, slug, shareKey);
         }
       } else {
         toast.error({

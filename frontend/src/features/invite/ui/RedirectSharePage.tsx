@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 interface JoinResponse {
-  isMember: boolean;
+  member: boolean;
   spaceId: number;
 }
 
@@ -28,7 +28,7 @@ export const RedirectSharePage = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/sign");
+      navigate(`/sign?slug=${slug}&shareKey=${shareKey}`);
       return;
     }
 
@@ -51,12 +51,12 @@ export const RedirectSharePage = () => {
     }
 
     if (data?.success) {
-      const { isMember, spaceId } = data.data;
+      const { member, spaceId } = data.data;
 
-      if (isMember) {
+      if (member) {
         toast.success({
           title: "가입 완료",
-          message: "팀에 성공적으로 참여했어요!",
+          message: "밴드에 성공적으로 가입했어요!",
         });
       } else {
         toast.info({

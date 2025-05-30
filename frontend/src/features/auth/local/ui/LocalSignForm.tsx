@@ -2,7 +2,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { ItemField } from "@/shared/ui/ItemField";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface LocalSignFormProps {
   mode: "signin" | "signup";
@@ -15,6 +15,10 @@ interface LocalSignFormProps {
 
 export const LocalSignForm = ({ mode, onSubmit }: LocalSignFormProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const slug = searchParams.get("slug");
+  const shareKey = searchParams.get("shareKey");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -197,7 +201,23 @@ export const LocalSignForm = ({ mode, onSubmit }: LocalSignFormProps) => {
           <div
             className="text-neutral500 font-bold cursor-pointer"
             onClick={() => {
-              mode === "signin" ? navigate("/signup") : navigate("/signin");
+              if (mode === "signin") {
+                navigate(
+                  `/signup${
+                    slug && shareKey
+                      ? `?slug=${slug ?? ""}&shareKey=${shareKey ?? ""}`
+                      : ""
+                  }`
+                );
+              } else {
+                navigate(
+                  `/signin${
+                    slug && shareKey
+                      ? `?slug=${slug ?? ""}&shareKey=${shareKey ?? ""}`
+                      : ""
+                  }`
+                );
+              }
             }}
           >
             {mode === "signin" ? "회원가입" : "로그인"}

@@ -4,7 +4,7 @@ type GlobalState = {
   accessToken: string | null;
   isLoggedIn: boolean;
 
-  login: (token: string) => void;
+  login: (token: string, slug?: string, shareKey?: string) => void;
   logout: () => void;
 
   introShown: boolean;
@@ -33,10 +33,14 @@ export const useGlobalStore = create<GlobalState>((set, get) => ({
     return !!get().accessToken;
   },
 
-  login: (token) => {
+  login: (token, slug, shareKey) => {
     localStorage.setItem("accessToken", token);
     set({ accessToken: token });
-    window.location.href = "/";
+    if (slug && shareKey) {
+      window.location.href = `/share/${slug}/${shareKey}`;
+    } else {
+      window.location.href = "/";
+    }
   },
   logout: () => {
     localStorage.removeItem("accessToken");
