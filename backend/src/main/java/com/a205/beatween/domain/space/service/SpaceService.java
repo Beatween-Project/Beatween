@@ -4,7 +4,6 @@ import com.a205.beatween.common.reponse.Result;
 import com.a205.beatween.common.util.S3Util;
 import com.a205.beatween.domain.drawing.entity.Drawing;
 import com.a205.beatween.domain.drawing.repository.DrawingRepository;
-import com.a205.beatween.domain.song.dto.CopySongListByCategoryDto;
 import com.a205.beatween.domain.song.entity.CopySheet;
 import com.a205.beatween.domain.song.entity.CopySong;
 import com.a205.beatween.domain.song.repository.CopySheetRepository;
@@ -12,8 +11,6 @@ import com.a205.beatween.domain.song.repository.CopySongRepository;
 import com.a205.beatween.domain.song.service.SongService;
 import com.a205.beatween.domain.space.dto.InvitationDto;
 import com.a205.beatween.domain.space.dto.CreateTeamDto;
-import com.a205.beatween.domain.space.dto.SpaceDetailDto;
-import com.a205.beatween.domain.space.dto.SpaceSummaryDto;
 import com.a205.beatween.domain.space.dto.MemberDto;
 import com.a205.beatween.domain.space.dto.SpaceDetailResponseDto;
 import com.a205.beatween.domain.space.entity.Category;
@@ -32,6 +29,7 @@ import com.a205.beatween.domain.user.repository.NotificationRepository;
 import com.a205.beatween.domain.user.repository.UserNotificationRepository;
 import com.a205.beatween.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,13 +51,13 @@ public class SpaceService {
     private final SpaceRepository spaceRepository;
     private final UserRepository userRepository;
     private final S3Util s3Util;
-    private final SongService songService;
     private final CategoryRepository categoryRepository;
     private final CopySongRepository copySongRepository;
     private final CopySheetRepository copySheetRepository;
     private final DrawingRepository drawingRepository;
     private final NotificationRepository notificationRepository;
     private final UserNotificationRepository userNotificationRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public boolean checkUserIsMemberOfSpace(Integer userId, Integer spaceId){
         return userSpaceRepository.existsByUser_UserIdAndSpace_SpaceId(userId, spaceId);
@@ -319,4 +317,31 @@ public class SpaceService {
         userSpaceRepository.delete(userSpace);
         return 0; //"팀 스페이스 삭제 완료";
     }
+
+    public Result<Integer> getCurrentParticipantCount(Integer spaceId) {
+        String key = "ws:space:" + spaceId + ":sessionCount";
+        Object count = redisTemplate.opsForValue().get(key);
+
+        if (count instanceof Long) {
+            return Result.success(((Long) count).intValue());
+        } else if (count instanceof Integer) {
+            return Result.success((Integer) count);
+        } else if (count instanceof String) {
+            try {
+                return Result.success(Integer.parseInt((String) count));
+            } catch (NumberFormatException e) {
+                return Result.error(400, "Redis 값이 숫자가 아닙니다.");
+            }
+        } else {
+            return Result.error(404, "Redis에 세션 수 정보가 없습니다.");
+        }
+    }
+
+
+
+
+
+
+
+
 }

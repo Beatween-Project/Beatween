@@ -160,4 +160,15 @@ public class SpaceController {
         }
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/{spaceId}/participants/count")
+    public ResponseEntity<Result<Integer>> getParticipantCount(
+            @PathVariable("spaceId") Integer spaceId
+    ) {
+        Result<Integer> result = spaceService.getCurrentParticipantCount(spaceId);
+        return ResponseEntity.ok(result);
+    }
+
+
+
 }
