@@ -5,6 +5,7 @@ export function useMeasureHighlight(
   containerRef: React.RefObject<HTMLDivElement | null>
 ) {
   const { currentMeasure, isPlaying } = useScoreStore();
+
   const didInitialRenderRef = useRef(false);
 
   const updateHighlight = () => {
@@ -37,12 +38,14 @@ export function useMeasureHighlight(
     });
   };
 
+  // ✅ 마디가 변경될 때마다 하이라이팅
   useEffect(() => {
     requestAnimationFrame(() => {
       updateHighlight();
     });
   }, [currentMeasure]);
 
+  // ✅ 재생 시작 시 첫 마디 강제 하이라이팅 (currentMeasure 변경 없어도)
   useEffect(() => {
     if (isPlaying && !didInitialRenderRef.current) {
       requestAnimationFrame(() => {
@@ -50,39 +53,10 @@ export function useMeasureHighlight(
         didInitialRenderRef.current = true;
       });
     }
+
+    // 재생이 끝나거나 멈췄을 때 초기화
     if (!isPlaying) {
       didInitialRenderRef.current = false;
     }
   }, [isPlaying]);
-
-  // ✅ 클릭 이벤트 등록 – 재생 중이면 건너뜀
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || isPlaying) return;
-
-    const observer = new MutationObserver(() => {
-      const measures = container.querySelectorAll("g.measure");
-      if (measures.length === 0) return;
-
-      measures.forEach((el, idx) => {
-        const g = el as SVGGElement;
-        if (g.getAttribute("data-click-bound") === "true") return;
-
-        g.style.cursor = "pointer";
-        g.style.pointerEvents = "auto";
-        g.addEventListener("click", () => {
-          useScoreStore.getState().setCurrentMeasure(idx);
-          console.log("🎯 마디 클릭 → currentMeasure 변경:", idx);
-        });
-        g.setAttribute("data-click-bound", "true");
-      });
-    });
-
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => observer.disconnect();
-  }, [containerRef, isPlaying]);
 }

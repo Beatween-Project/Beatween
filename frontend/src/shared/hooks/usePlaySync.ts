@@ -34,7 +34,6 @@ export function usePlaySync(spaceId: string) {
 
           if (playStatus === "PLAYING") {
             console.log("▶️ [START] PLAYING 상태 진입");
-
             requestAnimationFrame(() => {
               setScorePlaying(true);
               setGlobalPlaying(true);
@@ -43,12 +42,11 @@ export function usePlaySync(spaceId: string) {
 
             const beatDuration = 60000 / bpm;
             const measureDuration = beatDuration * 4;
+
             isPausedRef.current = false;
             resumeTimestampRef.current = startTimestamp ?? Date.now();
 
-            let lastMeasure = currentMeasure ?? 0;
-            currentMeasureRef.current = lastMeasure;
-            setCurrentMeasure(lastMeasure);
+            let lastMeasure = -1;
 
             const tick = () => {
               const now = Date.now();
@@ -96,21 +94,17 @@ export function usePlaySync(spaceId: string) {
       ];
     };
 
-    const connectAndSubscribe = () => {
+    if (stompClient.connected) {
+      console.log("🔌 stompClient 연결됨, 구독 시작");
+      subscribeToPlay();
+    } else {
+      console.log("🕓 stompClient 비연결 상태 → 연결 후 구독 예정");
       stompClient.onConnect = () => {
         console.log("🔌 stompClient 연결 완료 → 구독 시작");
         subscribeToPlay();
       };
-
-      if (!stompClient.active) {
-        stompClient.activate();
-      } else if (stompClient.connected) {
-        console.log("🔄 stompClient 이미 연결됨 → 즉시 구독");
-        subscribeToPlay();
-      }
-    };
-
-    connectAndSubscribe();
+      stompClient.activate();
+    }
 
     return () => {
       if (subscription) {

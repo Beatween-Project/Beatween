@@ -1,3 +1,4 @@
+// useScoreStore.ts
 import { create } from "zustand";
 import { Sheet } from "@/entities/song/types/song.types";
 
@@ -41,46 +42,58 @@ interface ScoreStore {
   selectedPartSheetUrl: string | null;
   setSelectedPartSheetUrl: (url: string) => void;
 
+  // 새로 추가: parts 상태 관리
   parts: string[];
   setParts: (parts: string[]) => void;
-
-  reset: () => void;
 }
 
-const initialState = {
-  xmlData: "",
-  currentMeasure: 0,
-  measureCount: 0,
-  bpm: 120,
-  baseBpm: 120,
-  thumbnails: [],
-  selectedNote: null,
-  isPreviewVisible: false,
-  isFullscreen: false,
-  isPlaying: false,
-  systems: [],
-  selectedSheets: [],
-  selectedPartSheetUrl: null,
-  parts: [],
-};
-
 export const useScoreStore = create<ScoreStore>((set) => ({
-  ...initialState,
+  xmlData: "",
   setXmlData: (data) => set({ xmlData: data }),
+
+  currentMeasure: 0,
   setCurrentMeasure: (measure) => set({ currentMeasure: measure }),
+
+  measureCount: 0,
   setMeasureCount: (count) => set({ measureCount: count }),
+
+  bpm: 120,
   setBpm: (bpm) => set({ bpm }),
+
+  baseBpm: 120,
   setBaseBpm: (bpm) => set({ baseBpm: bpm }),
+
+  thumbnails: [],
   setThumbnails: (thumbnails) => set({ thumbnails }),
+
+  selectedNote: null,
   setSelectedNote: (note) => set({ selectedNote: note }),
+
+  isPreviewVisible: false,
   togglePreview: () =>
     set((state) => ({ isPreviewVisible: !state.isPreviewVisible })),
+
+  isFullscreen: false,
   toggleFullscreen: () =>
     set((state) => ({ isFullscreen: !state.isFullscreen })),
+
+  isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
+
+  systems: [],
   setSystems: (systems) => set({ systems }),
-  setSelectedSheets: (sheets) => set({ selectedSheets: sheets }),
+
+  selectedSheets: [],
+  setSelectedSheets: (sheets) => {
+    set({ selectedSheets: sheets });
+  },
+
+  selectedPartSheetUrl: null,
   setSelectedPartSheetUrl: (url) => set({ selectedPartSheetUrl: url }),
-  setParts: (parts) => set({ parts }),
-  reset: () => set(initialState),
+
+  // 새로 추가: parts 상태 초기화 및 설정 함수
+  parts: [],
+  setParts: (parts) => {
+    set({ parts });
+  },
 }));

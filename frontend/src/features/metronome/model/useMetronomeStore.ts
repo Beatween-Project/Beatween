@@ -10,6 +10,7 @@ interface MetronomeState {
 export const useMetronomeStore = create<MetronomeState>((set) => ({
   isEnabled: false,
   volume: 0.5,
-  toggle: () => set((state) => ({ isEnabled: !state.isEnabled })),
+  toggle: () =>
+    set((state) => ({ isEnabled: !state.isEnabled })),
   setVolume: (v) => set({ volume: v }),
 }));

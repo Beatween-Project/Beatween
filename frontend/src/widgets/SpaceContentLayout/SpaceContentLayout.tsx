@@ -1,6 +1,7 @@
 import { ImageBox } from "./ui/ImageBox";
 import { PlaywithButton } from "./ui/PlaywithButton";
 import { ImageCircle } from "@/shared/ui/ImageCircle";
+import { useNavigate } from "react-router-dom";
 import { openModal } from "@/shared/lib/modal";
 import { toast } from "@/shared/lib/toast";
 import { UpdateBandForm } from "@/features/updateBand/ui/UpdateBandForm";
@@ -20,8 +21,7 @@ import { DeleteBandButton } from "@/features/deleteBand/ui/DeleteBandButton";
 import { ExitBandButton } from "@/features/deleteBand/ui/ExitBandButton";
 import { InviteButton } from "@/features/invite/ui/InviteButton";
 import { useGlobalStore } from "@/app/store/globalStore";
-import { useSongLoading } from "@/features/score/hooks/useSongLoading";
-import { useScoreStore } from "@/features/score/model/useScoreStore";
+import axiosInstance from "@/shared/api/axiosInstance";
 
 interface SpaceContentLayoutProps {
   type?: "personal" | "team";
@@ -32,18 +32,16 @@ export const SpaceContentLayout = ({
   type = "team",
   teamId,
 }: SpaceContentLayoutProps) => {
-  if (!teamId) return <div>잘못된 밴드 정보입니다.</div>;
+  if (!teamId) {
+    return <div>잘못된 밴드 정보입니다.</div>;
+  }
 
   const updateFormRef = useRef<BandFormHandle>(null);
   const { mutate: updateBandMutate } = useUpdateBand(Number(teamId));
+  const navigate = useNavigate();
   const setStompClient = useSocketStore((state) => state.setStompClient);
   const versionSpace = useSpaceVersionStore((state) =>
     state.getVersion(teamId)
-  );
-  const loadSelectedSongOrPrompt = useSongLoading();
-  const resetScoreState = useScoreStore((state) => state.reset);
-  const setHasSelectedSong = useGlobalStore(
-    (state) => state.setHasSelectedSong
   );
 
   const handleConfirm = () => {
@@ -59,13 +57,14 @@ export const SpaceContentLayout = ({
   };
 
   const handlePlayWithClick = () => {
-    resetScoreState();
-    setHasSelectedSong(false);
-
     const spaceId = String(teamId);
     const token = localStorage.getItem("accessToken");
+
     if (!token) {
-      toast.error({ title: "인증 실패", message: "로그인이 필요합니다." });
+      toast.error({
+        title: "인증 실패",
+        message: "로그인이 필요합니다.",
+      });
       return;
     }
 
@@ -77,26 +76,64 @@ export const SpaceContentLayout = ({
     const client = new Client({
       webSocketFactory: () => new SockJS(wsUrl),
       reconnectDelay: 5000,
-      connectHeaders: { spaceId },
-      debug: () => {},
+      connectHeaders: {
+        spaceId,
+      },
+      debug: (msg) => console.log("🔹 STOMP DEBUG:", msg),
     });
 
     client.onConnect = async () => {
       console.log("✅ WebSocket connected");
       setStompClient(client);
-      await loadSelectedSongOrPrompt(spaceId);
+
+      try {
+        const res = await axiosInstance.get(
+          `api/v1/play/spaces/${spaceId}/selected-song`
+        );
+
+        const data = res.data;
+
+        if (res.status === 200 && data?.data?.copySongId) {
+          console.log("🎵 선택된 곡 있음:", data.data.copySongId);
+          navigate(`/room/${spaceId}`);
+        } else {
+          console.log("🕒 선택된 곡 없음");
+          const isManager = useGlobalStore.getState().isManager;
+
+          if (isManager) {
+            console.log(
+              "🎩 매니저입니다 → ScoreSelectModal이 자동 호출될 예정"
+            );
+            navigate(`/room/${spaceId}`);
+          } else {
+            toast.info({
+              title: "대기 중",
+              message: "관리자가 곡을 선택할 때까지 기다려 주세요.",
+            });
+            navigate(`/room/${spaceId}`);
+          }
+        }
+      } catch (error) {
+        console.error("❌ 선택된 곡 조회 실패:", error);
+        toast.error({
+          title: "요청 실패",
+          message: "곡 정보를 불러오는 데 실패했습니다.",
+        });
+        navigate(`/room/${spaceId}`);
+      }
     };
 
     client.activate();
   };
 
   const { data, error, isLoading } = useSpaceDetail(teamId);
+
   if (isLoading) return <div>로딩중...</div>;
   if (error) return <div>에러: {error.message}</div>;
   if (data && !data.success)
     return (
       <div className="py-6 text-warning font-bold">
-        상정 가능한 오류 발생: {data.error?.message}
+        상정 가능한 범위의 오류 발생: {data.error?.message}
       </div>
     );
 

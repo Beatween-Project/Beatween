@@ -1,6 +1,6 @@
+// src/app/store/socketStore.ts
 import { create } from "zustand";
 import { Client } from "@stomp/stompjs";
-import { useScoreStore } from "@/features/score/model/useScoreStore"; // ✅ 추가
 
 type SocketState = {
   stompClient: Client | null;
@@ -8,7 +8,7 @@ type SocketState = {
   setStompClient: (client: Client | null) => void;
   setSpaceId: (spaceId: string | null) => void;
   disconnectWithCleanup: () => Promise<void>;
-  updatePausedMeasure?: (measure: number) => void;
+  updatePausedMeasure?: (measure: number) => void; // ✅ 이 줄 추가
   isConnected: boolean;
   setIsConnected: (value: boolean) => void;
 };
@@ -17,36 +17,43 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   stompClient: null,
   spaceId: null,
 
-  setStompClient: (client) => set({ stompClient: client }),
-  setSpaceId: (spaceId) => set({ spaceId }),
-  updatePausedMeasure: undefined,
+  setStompClient: (client) => {
+    set({ stompClient: client });
+  },
+
+  setSpaceId: (spaceId) => {
+    set({ spaceId });
+  },
+  updatePausedMeasure: undefined, // 초기엔 undefined로 설정
+
   isConnected: false,
   setIsConnected: (value) => set({ isConnected: value }),
 
   disconnectWithCleanup: async () => {
-    const { stompClient } = get();
+    const { stompClient, spaceId } = get();
 
-    if (stompClient && stompClient.connected) {
+    if (stompClient && stompClient.connected && spaceId) {
       try {
+        // disconnect 메시지 전송
         stompClient.publish({
           destination: "/app/disconnect",
-          body: "",
+          headers: {
+            spaceId,
+          },
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        await stompClient.deactivate();
+        // 메시지 전송 완료를 위한 짧은 대기
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        console.log("✅ [Store] WebSocket 정상 종료됨");
+        await stompClient.deactivate();
       } catch (error) {
-        console.error("❌ [Store] WebSocket 종료 중 오류:", error);
+        console.error("❌ [Store] WebSocket 해제 중 오류:", error);
       }
     } else {
-      console.warn("⚠️ [Store] 종료 시도: 연결된 stompClient가 없음");
+      console.warn("⚠️ [Store] 연결된 WebSocket이 없거나 spaceId가 없음");
     }
 
-    // ✅ ScoreStore 상태 초기화
-    useScoreStore.getState().reset();
-
-    set({ stompClient: null, spaceId: null, isConnected: false });
+    // 상태 초기화
+    set({ stompClient: null, spaceId: null });
   },
 }));
