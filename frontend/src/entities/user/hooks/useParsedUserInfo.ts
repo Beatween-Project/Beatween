@@ -5,19 +5,21 @@ export const useParsedUserInfo = () => {
   const { data, isLoading, error } = useUserInfo();
 
   const userInfo = useMemo(() => {
-    if (!data?.data) return null;
+    const userData = data?.data;
+    if (!userData) return null;
+
     return {
-      name: data.data.name,
-      profileImageUrl: data.data.profileImageUrl,
+      name: userData.name,
+      profileImageUrl: userData.profileImageUrl,
     };
   }, [data]);
 
   const spaces = useMemo(() => {
-    return data?.data.spaces || [];
+    return data?.data?.spaces ?? [];
   }, [data]);
 
   const categories = useMemo(() => {
-    return data?.data.categoriesAndSongsOfMySpace || [];
+    return data?.data?.categoriesAndSongsOfMySpace ?? [];
   }, [data]);
 
   return {

@@ -4,53 +4,64 @@ import { useGlobalStore } from "@/app/store/globalStore";
 
 /**
  * 매니저 여부를 확인하고 글로벌 스토어에 반영하는 커스텀 훅
- * - 개인 메시지 (/user/queue)
- * - 전체 브로드캐스트 (/topic)
  */
 export function useManagerCheck(spaceId: string) {
   const stompClient = useSocketStore((s) => s.stompClient);
   const setIsManager = useGlobalStore((s) => s.setIsManager);
-  const clientId = useGlobalStore((s) => s.clientId);
 
   const [pendingManager, setPendingManager] = useState<boolean | null>(null);
-  const subscribedRef = useRef(false); // ✅ 중복 구독 방지
+  const subscribedRef = useRef(false);
+
+  console.log("📡 stompClient.connected (init):", stompClient?.connected);
 
   useEffect(() => {
-    if (!stompClient || !spaceId || subscribedRef.current) return;
+    if (!stompClient || !spaceId || subscribedRef.current) {
+      console.log("⚠️ 조건 미충족 - 구독 생략", {
+        stompClientExists: !!stompClient,
+        spaceIdExists: !!spaceId,
+        alreadySubscribed: subscribedRef.current,
+      });
+      return;
+    }
 
     subscribedRef.current = true;
+    console.log("🛰️ 매니저 상태 구독 시작:", spaceId);
 
-    // ✅ [1] 개인 응답 구독 (초기 접속 시 매니저 여부)
-    const personalSub = stompClient.subscribe(
+    const managerSub = stompClient.subscribe(
       `/user/queue/play/manager/${spaceId}`,
       (msg) => {
-        const data = JSON.parse(msg.body); // { manager: true | false }
-        console.log("📥 초기 매니저 여부 수신:", data);
-        setPendingManager(!!data.manager);
-      }
-    );
+        try {
+          const data = JSON.parse(msg.body);
+          console.log("🧪 매니저 여부 메시지 수신:", data);
+          console.log("📥 수신된 메시지 구조:", JSON.stringify(data));
 
-    // ✅ [2] 매니저 변경 브로드캐스트 수신
-    const broadcastSub = stompClient.subscribe(
-      `/topic/play/manager/${spaceId}`,
-      (msg) => {
-        const data = JSON.parse(msg.body); // { userId: "456", ... }
-        const isNewManager = String(data.userId) === String(clientId);
-        console.log("🔁 매니저 변경 수신:", data, "→ 나인가?", isNewManager);
-        setPendingManager(isNewManager);
+          const managerStatus =
+            typeof data === "boolean"
+              ? data
+              : data?.manager ?? data?.isManager ?? null;
+
+          if (typeof managerStatus === "boolean") {
+            console.log("✅ 최종적으로 setIsManager 호출됨:", managerStatus);
+            setPendingManager(managerStatus);
+          } else {
+            console.warn("⚠️ 알 수 없는 메시지 구조:", data);
+          }
+        } catch (e) {
+          console.error("❌ 메시지 파싱 실패:", msg.body, e);
+        }
       }
     );
 
     return () => {
-      personalSub.unsubscribe();
-      broadcastSub.unsubscribe();
-      subscribedRef.current = false; // unmount 시 초기화
+      managerSub.unsubscribe();
+      subscribedRef.current = false;
+      console.log("🧹 매니저 구독 해제:", spaceId);
     };
-  }, [stompClient, spaceId, clientId]);
+  }, [stompClient, spaceId]);
 
-  // ✅ 안전한 상태 반영 (렌더링 중 setState 방지)
   useEffect(() => {
     if (pendingManager !== null) {
+      console.log("🕓 pendingManager useEffect triggered:", pendingManager);
       const timer = setTimeout(() => {
         setIsManager(pendingManager);
       }, 0);

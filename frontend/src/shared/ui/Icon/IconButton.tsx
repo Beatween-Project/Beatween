@@ -33,6 +33,8 @@ export const IconButton = ({
     neutral: `text-neutral1000/70 bg-neutral400 hover:text-neutral100/70 hover:bg-neutral700`,
     dark: `text-neutral100/70 bg-neutral900 hover:text-neutral1000/70 hover:bg-neutral300`,
     black: `text-neutral1000 hover:bg-neutral1000/30`,
+    yellow: "text-yellow-400", // ✅ 반드시 포함해야 TypeScript 오류가 안 납니다.
+
   };
   const roundClasses = {
     xs: "rounded-xs",

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { EnsembleRoomHeader } from "@/widgets/EnsembleRoomHeader";
 import ScoreSheetViewer from "@/widgets/ScoreSheetViewer";
@@ -8,40 +8,52 @@ import { useManagerCheck } from "@/shared/hooks/useManagerCheck";
 import ScoreSelectModal from "@/widgets/ScoreSelectModal/ScoreSelectModal";
 import CanvasOverlay from "@/features/draw/ui/CanvasOverlay";
 import { useGlobalStore } from "@/app/store/globalStore";
+import { useScoreStore } from "@/features/score/model/useScoreStore";
+import { useInstrumentStore } from "@/features/instrument/model/useInstrumentStore";
+import { useSocketStore } from "@/app/store/socketStore";
 
 export default function EnsembleRoom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { roomId } = useParams();
+  const [selectedColor, setSelectedColor] = useState("#000000");
+  const isSocketConnected = useSocketStore((s) => s.isConnected);
 
   usePlaySync(roomId ?? "");
   useManagerCheck(roomId ?? "");
 
   const isDrawing = useGlobalStore((state) => state.isDrawing);
+  const clientId = useGlobalStore((state) => state.clientId);
+  const stompClient = useSocketStore((state) => state.stompClient);
+
+  const selectedPart = useInstrumentStore((s) => s.selected);
+  const selectedSheets = useScoreStore((s) => s.selectedSheets);
+  const currentSheet = selectedSheets.find((s) => s.part === selectedPart);
+  const sheetId = currentSheet?.copySheetId;
 
   return (
     <div className="flex flex-col h-screen bg-white relative">
       <ScoreSelectModal spaceId={roomId!} />
       <EnsembleRoomHeader />
 
-      {/* 🎯 악보 + 드로잉을 함께 감싸는 container (relative 기준점) */}
       <div
         className="flex-1 overflow-y-auto scroll-custom relative"
         id="score-container"
       >
         <ScoreSheetViewer containerRef={containerRef} />
 
-        {/* ✅ 악보 위에 드로잉 오버레이 */}
-        <CanvasOverlay
-          sheetId={123} // 실제 값으로 대체
-          spaceId={roomId ?? ""}
-          userId={"user-id"} // 실제 사용자 ID로 대체
-          selectedColor={"#000000"} // Zustand 등에서 상태 연동 가능
-          onColorChange={() => {}}
-          isSocketConnected={true}
-          stompClient={null}
-          isDrawing={isDrawing}
-          isPaletteVisible={true} // ✅ 이게 빠졌다는 오류
-        />
+        {sheetId && (
+          <CanvasOverlay
+            sheetId={sheetId}
+            spaceId={roomId ?? ""}
+            userId={clientId.toString()}
+            selectedColor={selectedColor}
+            onColorChange={setSelectedColor}
+            stompClient={stompClient}
+            isPaletteVisible={isDrawing}
+            isSocketConnected={isSocketConnected} // ✅ 추가
+
+          />
+        )}
       </div>
 
       <EnsembleRoomFooter containerRef={containerRef} />

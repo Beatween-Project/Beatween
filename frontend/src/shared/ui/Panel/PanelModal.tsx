@@ -14,6 +14,8 @@ const toneBgClasses: Record<Tone, string> = {
   neutral: "bg-neutral400",
   dark: "bg-neutral1000/30",
   black: "bg-neutral1000",
+  yellow: "bg-yellow-400", // ✅ 이 줄 추가
+
 };
 
 export function PanelModal({

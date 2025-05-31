@@ -7,6 +7,8 @@ export const Icon = ({ icon, fill, size = 24, tone }: IconProps) => {
     neutral: `text-neutral400`,
     dark: `text-neutral1000/70`,
     black: `text-neutral1000`,
+    yellow: "text-yellow-400", // ✅ 추가
+
   };
 
   return (

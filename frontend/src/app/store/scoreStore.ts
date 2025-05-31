@@ -22,23 +22,37 @@ interface ScoreState {
   setCopySongId: (id: number) => void;
 }
 
-export const useScoreStore = create<ScoreState>((set) => ({
-  isPlaying: false,
-  currentMeasure: 1,
-  totalMeasures: 110,
-  tempo: 145,
-  selectedInstrument: "Guitar 1",
-  setIsPlaying: (isPlaying) => set({ isPlaying }),
-  setCurrentMeasure: (currentMeasure) => set({ currentMeasure }),
-  setTotalMeasures: (totalMeasures) => set({ totalMeasures }),
-  setTempo: (tempo) => set({ tempo }),
-  setSelectedInstrument: (selectedInstrument) => set({ selectedInstrument }),
-  selectedSheets: [],
-  selectedPartSheetUrl: null,
-  setSelectedSheets: (sheets) => set({ selectedSheets: sheets }),
-  setSelectedPartSheetUrl: (url) => set({ selectedPartSheetUrl: url }),
-  selectedSheetUrl: null,
-  setSelectedSheetUrl: (url) => set({ selectedSheetUrl: url }),
-  copySongId: null,
-  setCopySongId: (id) => set({ copySongId: id }),
-}));
+export const useScoreStore = create<ScoreState & { reset: () => void }>(
+  (set) => ({
+    isPlaying: false,
+    currentMeasure: 1,
+    totalMeasures: 110,
+    tempo: 145,
+    selectedInstrument: "Guitar 1",
+    setIsPlaying: (isPlaying) => set({ isPlaying }),
+    setCurrentMeasure: (currentMeasure) => set({ currentMeasure }),
+    setTotalMeasures: (totalMeasures) => set({ totalMeasures }),
+    setTempo: (tempo) => set({ tempo }),
+    setSelectedInstrument: (selectedInstrument) => set({ selectedInstrument }),
+    selectedSheets: [],
+    selectedPartSheetUrl: null,
+    setSelectedSheets: (sheets) => set({ selectedSheets: sheets }),
+    setSelectedPartSheetUrl: (url) => set({ selectedPartSheetUrl: url }),
+    selectedSheetUrl: null,
+    setSelectedSheetUrl: (url) => set({ selectedSheetUrl: url }),
+    copySongId: null,
+    setCopySongId: (id) => set({ copySongId: id }),
+    reset: () =>
+      set({
+        isPlaying: false,
+        currentMeasure: 1,
+        totalMeasures: 110,
+        tempo: 145,
+        selectedInstrument: "Guitar 1",
+        selectedSheets: [],
+        selectedPartSheetUrl: null,
+        selectedSheetUrl: null,
+        copySongId: null,
+      }),
+  })
+);

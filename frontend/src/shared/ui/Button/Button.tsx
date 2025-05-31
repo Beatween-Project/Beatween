@@ -32,6 +32,8 @@ const colorClass = {
   caution: `bg-red text-neural100`,
   light: `bg-neutral200 text-neutral1000`,
   dark: `bg-neutral800 text-neutral200`,
+  yellow: "text-yellow-400", // ✅ 반드시 포함해야 TypeScript 오류가 안 납니다.
+
 };
 
 export const Button = ({

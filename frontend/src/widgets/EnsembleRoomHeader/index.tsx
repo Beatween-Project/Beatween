@@ -8,6 +8,7 @@ import { InstrumentDropdown } from "@/features/instrument/ui/InstrumentDropdown"
 import { useScoreStore } from "@/features/score/model/useScoreStore";
 import { Icon } from "@/shared/ui/Icon";
 import { Button } from "@/shared/ui/Button";
+import { fetchSelectedSong } from "@/entities/song/api/songApi";
 
 export function EnsembleRoomHeader() {
   const { avatarUrl } = useUserStore();
@@ -15,91 +16,67 @@ export function EnsembleRoomHeader() {
   const { roomId } = useParams();
 
   const isPlaying = useGlobalStore((state) => state.isPlaying);
+  const isManager = useGlobalStore((state) => state.isManager);
+  const setHasSelectedSong = useGlobalStore((state) => state.setHasSelectedSong);
+
   const { showHeaderFooter } = useHeaderFooterStore();
-  const { disconnectWithCleanup, setSpaceId, spaceId } = useSocketStore();
+  const { disconnectWithCleanup, setSpaceId } = useSocketStore();
   const isDrawing = useGlobalStore((state) => state.isDrawing);
   const setIsDrawing = useGlobalStore((state) => state.setIsDrawing);
 
-  // 변경: sheet는 로깅용으로만 사용, parts를 직접 가져옴
-  const sheets = useScoreStore((state) => state.selectedSheets);
   const parts = useScoreStore((state) => state.parts);
+  const setSelectedSheets = useScoreStore((state) => state.setSelectedSheets);
+  const setParts = useScoreStore((state) => state.setParts);
 
   const currentSpaceId = String(roomId ?? "unknown");
 
   useEffect(() => {
-    console.log("📥 [LOG] useScoreStore의 selectedSheets 상태 확인:", sheets);
-
-    // 디버깅: sheets 배열에서 part 정보 확인
-    if (sheets && sheets.length > 0) {
-      console.log("🔍 EnsembleRoomHeader - 첫 번째 sheet:", sheets[0]);
-      if (sheets[0].part) {
-        console.log(
-          "🔍 EnsembleRoomHeader - 첫 번째 sheet의 part:",
-          sheets[0].part
-        );
-      } else {
-        console.warn(
-          "⚠️ EnsembleRoomHeader - sheets[0]에 part 속성이 없습니다"
-        );
-      }
-    }
-  }, [sheets]);
-
-  useEffect(() => {
-    console.log("🎼 EnsembleRoomHeader - 현재 parts 상태:", parts);
-    // 추가 디버깅: store에서 직접 확인
-    console.log(
-      "🔍 EnsembleRoomHeader - store에서 직접 확인한 parts:",
-      useScoreStore.getState().parts
-    );
-  }, [parts]);
-
-  useEffect(() => {
-    console.log("📌 [LOG] 초기 roomId:", roomId);
-    console.log("📌 [LOG] 변환된 currentSpaceId:", currentSpaceId);
-  }, [roomId, currentSpaceId]);
-
-  useEffect(() => {
     if (currentSpaceId && currentSpaceId !== "unknown") {
       setSpaceId(currentSpaceId);
-      console.log("🎯 [Header] spaceId를 store에 설정:", currentSpaceId);
+      setIsDrawing(false);
     }
-
-    setIsDrawing(false);
-    console.log("🖌️ 기본 드로잉 상태:", false);
   }, [currentSpaceId, setSpaceId, setIsDrawing]);
+
+  useEffect(() => {
+    if (currentSpaceId && typeof isManager === "boolean") {
+      fetchSelectedSong(currentSpaceId)
+        .then((selectedSong) => {
+          if (!selectedSong || !selectedSong.copySongId) {
+            if (isManager) return;
+            return;
+          }
+          const sheets = selectedSong.sheets ?? [];
+          if (sheets.length > 0) {
+            setSelectedSheets(sheets);
+            setParts(sheets.map((s) => s.part));
+            setHasSelectedSong(true);
+          }
+        })
+        .catch((error) => {
+          console.error("🎵 선택된 곡 조회 실패:", error);
+        });
+    }
+  }, [currentSpaceId, isManager]);
 
   useEffect(() => {
     const handlePaletteOpen = () => {
       setIsDrawing(true);
-      console.log("🎨 색상 선택기 열림 → 드로잉 활성화 true");
     };
     window.addEventListener("open-color-picker", handlePaletteOpen);
     return () =>
       window.removeEventListener("open-color-picker", handlePaletteOpen);
   }, [setIsDrawing]);
 
-  useEffect(() => {
-    console.log("📦 [LOG] 현재 spaceId 상태:", spaceId);
-  }, [spaceId]);
-
   const handleExit = async () => {
-    console.log("🚪 [EXIT] 합주방 나가기 시도");
-    console.log("🟡 store의 spaceId:", spaceId);
     await disconnectWithCleanup();
-    console.log("⏪ [EXIT] 이전 화면으로 이동");
     navigate(-1);
   };
 
   const handleToggleDrawing = () => {
-    const next = !isDrawing;
-    setIsDrawing(next);
-    console.log("🎨 드로잉 상태 토글:", next);
+    setIsDrawing(!isDrawing);
   };
 
   if (isPlaying && !showHeaderFooter) return null;
-
-  console.log("🔍 EnsembleRoomHeader 렌더링 시점의 parts:", parts);
 
   return (
     <header
@@ -131,6 +108,14 @@ export function EnsembleRoomHeader() {
       </div>
 
       <div className="flex items-center gap-3">
+        {isManager && (
+          <div
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-400/80"
+            title="매니저"
+          >
+            <Icon icon="crown" tone="white" size={20} />
+          </div>
+        )}
         {isDrawing ? (
           <>
             <button
@@ -149,7 +134,6 @@ export function EnsembleRoomHeader() {
             <button
               onClick={() => {
                 setIsDrawing(false);
-                console.log("❌ 드로잉 종료 → false");
               }}
               className="ml-2 bg-red-400 text-white px-3 py-1.5 rounded-md hover:bg-red-500 text-sm"
             >

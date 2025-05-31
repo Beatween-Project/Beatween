@@ -1,1 +1,1 @@
-export type Tone = "white" | "light" | "neutral" | "dark" | "black";
+export type Tone = "white" | "light" | "neutral" | "dark" | "black" | "yellow";
