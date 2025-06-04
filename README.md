@@ -74,7 +74,7 @@
 | ------ | ------------------ |
 | 백지민 | 팀장 / Full-Stack  |
 | 서건호 | Front-End          |
-| 이규리 | Full-Stack / Infra |
+| 이규리 | Infra / Back-End   |
 | 이성희 | Full-Stack         |
 | 윤혜진 | AI / Back-End      |
 | 최현용 | AI / Back-End      |
